@@ -2,13 +2,13 @@ const con = require('../config/db');
 
 const cartModel = {
     getAll: (user_id) => con.query(
-    `SELECT c.product_id, p.name, p.price, c.quantity,
+    `SELECT c.product_id, p.name, p.price, c.quantity, 
     (p.price * c.quantity) as total_price,
     to_char(c.created_at, 'dd/MM/yy HH24:mm:ss') as created_at
     FROM "cartTable" c
     JOIN "productTable" p ON c.product_id = p.id
     WHERE c.user_id = $1`,
-    [user_id]
+    [user_id] //Lấy thông tin sản phẩm theo id của từng user theo 2 bảng
     ),
 
     //Sync số lượng trực tiếp từ kho và cart => giảm kho, tăng cart

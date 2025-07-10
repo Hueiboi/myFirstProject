@@ -2,11 +2,21 @@ const BASE_URL = 'http://localhost:3000/api';
 
 
 async function loadCart() {
-    const res = await fetch(`${BASE_URL}/cart`);
+    const res = await fetch(`${BASE_URL}/cart?user_id=us001`);
     const resData = await res.json();
     renderCartList(resData);
     console.log(resData);
 }
+
+/*Solution hiện tại: 
+    1. Tạm thời lưu user_id vào local storage
+    2. Sử dụng từ local storage để fetch
+    => Sau này sử dụng JWT khi có hệ thống đăng nhập đầy đủ
+    Sau khi người dùng đăng nhập, bạn trả về JWT token chứa user_id
+    Token này được lưu ở localStorage hoặc cookie
+    Khi gọi API, bạn gửi kèm token trong header
+
+*/
 
 function renderCartList(cartItems) {
     const cartList = document.getElementById('cartList');
@@ -40,7 +50,7 @@ async function updateCartItems(product_id, oldQuantity) {
         return;
     }
 
-    const res = await fetch(`${BASE_URL}/cart/${product_id}`, {//Sửa lại fetch URL có đính kèm user_id
+    const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=`, {//Sửa lại fetch URL có đính kèm user_id
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({quantity: newQuantity})
@@ -71,7 +81,7 @@ async function clearCart() {
 
 async function deleteCartItems(product_id) {
     if(confirm("Are you sure to delete this item ?")) {
-        const res = await fetch(`${BASE_URL}/cart/${product_id}`, {
+        const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=`, {
         method: 'DELETE'
         });
 
