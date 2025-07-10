@@ -1,0 +1,22 @@
+{
+  "name": "myproject",
+  "version": "1.0.0",
+  "description": "1. Mẫu chia folder theo từng module\r store-management/\r │\r ├── node_modules/              # Thư viện cài bằng npm (auto generate)\r ├── package.json               # Thông tin package, script, dependencies\r ├── .env                       # File chứa biến môi trường (port, DB credentials)\r ├── server.js (hoặc index.js)  # File main khởi động server Express\r │\r ├── config/                    # Cấu hình, ví dụ: db.js để kết nối PostgreSQL\r │   └── db.js\r │\r ├── controllers/               # Xử lý logic cho các route\r │   └── productController.js\r │\r ├── models/                    # Truy vấn DB, define model hoặc viết SQL\r │   └── productModel.js\r │\r ├── routes/                    # Khai báo các endpoint\r │   └── productRoutes.js\r │\r ├── public/                    # File frontend (HTML, CSS, JS) nếu bạn dùng FE thuần\r │   ├── index.html\r │   └── main.js\r │\r └── README.md                  # Mô tả dự án, cách chạy (cực kỳ nên có)",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

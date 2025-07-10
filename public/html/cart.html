@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cart</title>
+  <style>
+    body { font-family: Arial; margin: 30px; }
+    input, button { margin: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Your Cart</h1>
+
+  <button onclick="clearCart()">Clear</button>
+  <div id="cartContainer">
+    <table>
+      <thead>
+        <tr>
+          <th>Product ID</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Time Added</th>
+          <th>Total Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="cartList"></tbody>
+    </table>
+  </div>
+
+  <script src="/js/cart.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Manager</title>
+  <style>
+    body { font-family: Arial; margin: 30px; }
+    input, button { margin: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>Search Product</h2>
+  <input type="text" id="filter" placeholder="Find by name..." />
+  <button onclick="searchProducts()">Search</button>
+
+  <h2>Product List</h2>
+  <div class="sortingOption">
+    <select name="" id="sortBy">
+      <option value="id">Sort by ID</option>
+      <option value="name">Sort by name</option>
+      <option value="price">Sort by price</option>
+    </select>
+    <select name="" id="sortOrder">
+      <option value="asc">⬆️</option>
+      <option value="desc">⬇️</option>
+    </select>
+    <button onclick="loadProducts()">Sort</button>
+  </div>
+  
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>In stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="productList__User"></tbody>
+  </table>
+
+  <script src="../js/products.js"></script>
+</body>
+</html>
