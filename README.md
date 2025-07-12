@@ -1,4 +1,4 @@
-I/ Phần Products
+I/ Phần Products: Nơi quản lý các sản phẩm trong kho, chứa các thông tin cơ bản về sản phẩm của cửa hàng, quyền quản lý thuộc về manager hoặc staff
 1. Mẫu chia folder theo từng module
 store-management/
 │
@@ -31,7 +31,7 @@ store-management/
 	2-3. Folder controller logic: Xử lý yêu cầu POST, GET, PUT,..
 	2-4. Folder model: Thao tác SQL 
 
-3.
+3. Cấu trúc thư mục
 ```sh
 store-management/
 │
@@ -168,7 +168,7 @@ app.use('/api/products', productRoutes); // 👈 Sử dụng route từ `routes/
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${PORT}`));
 ```
-4. Những thắc mắc
+4. Những thắc mắc và lưu ý kĩ thuật
     0. Các cách test API
     Để test tính năng tìm kiếm sản phẩm qua filter, bạn có thể thử bằng Postman, curl, hoặc fetch (trong frontend). Dưới đây là hướng dẫn cho từng cách:
 
@@ -327,8 +327,9 @@ app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${
       const query = `UPDATE "productTable" SET ${fields.join(', ')} WHERE id = $${index}`;
       const result = await con.query(query, values);
 
-II/ Phần Cart
-📁 Cấu trúc thư mục chuẩn RESTful Backend
+II/ Phần Cart: Nơi chứa sản phẩm sau khi khách hàng thêm vào, chứa thông tin cơ bản về sản phẩm
+sẽ được sync tương ứng trong database, quyền truy cập thuộc về khách hàng
+1. Cấu trúc thư mục chuẩn RESTful Backend
 myProject/
 ├── controllers/
 │   ├── productController.js
@@ -360,6 +361,7 @@ myProject/
 🧩 File mẫu cho giỏ hàng (Cart)
 📄 models/cartModel.js
 
+2. Tương tự Products ở những chức năng chính cơ bản (Mẫu)
 const con = require('../db/connection');
 
 const cartModel = {
@@ -443,9 +445,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes); // 👈 Thêm route mới
 
 app.listen(3000, () => console.log('Server running on http://localhost:3000'));
-📌 Gợi ý thao tác CRUD từ client (HTML + JS)
-Bạn có thể thêm các form/button trong index.html để:
 
+*Gợi ý thao tác CRUD từ client (HTML + JS)
 Thêm sản phẩm vào giỏ (POST /api/cart)
 
 Xem giỏ hàng (GET /api/cart)
@@ -458,7 +459,8 @@ Xóa toàn bộ giỏ hàng
 
 Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương tự như phần product bạn đã làm.
 
-*Note*:  Khi nào dùng hàm kiểu nào?
+*Note*:  
+1. Khi nào dùng hàm kiểu nào?
 Tình huống	Gợi ý dùng
 Hàm thường, cần hoisting =>	function declaration
 Hàm gán biến, closure =>	function expression
@@ -466,11 +468,22 @@ Hàm callback, logic ngắn =>	arrow function
 Chạy hàm ngay =>	IIFE
 Định nghĩa method trong object/class =>	object method
 
-*Mẹo tránh rối khi mở rộng dự án*
+2. Mẹo tránh rối khi mở rộng dự án
 KỸ THUẬT                | 	GIẢI THÍCH
 Tách rõ module	        |   Mỗi module như product, cart, user nên có controller/model riêng, đừng viết chồng chéo.
 Giữ API consistent	    |   Ví dụ: mọi thao tác cần user_id thì thống nhất lấy từ req.query.user_id (sau này có auth thì chuyển sang req.user.id).
 Viết comment rõ ràng	  |   Nhất là các truy vấn SQL phức tạp, viết rõ để sau còn hiểu.
 Tạo middleware (sau này)|	  Nếu sau này có xác thực, user_id sẽ lấy từ middleware gán vào req.user.
-Viết unit test (về sau)	|   Giúp test 1 phần riêng lẻ không bị ảnh hưởng toàn bộ app.#   m y F i r s t P r o j e c t  
- 
+Viết unit test (về sau)	|   Giúp test 1 phần riêng lẻ không bị ảnh hưởng toàn bộ app
+
+3. Sync database giữa cart và product
+a/ Add
+- Lấy thông tin từ product, kiểm tra số lượng có hay không hoặc khi thêm vào cart có quá số lượng
+- Sau đó cập nhật số lượng từ cả 2, nếu trong cart có sẵn thì cập nhật thêm, chưa thì sẽ insert
+b/ Update
+- Lấy số lượng từ giỏ đang có 
+- Kiểm tra người dùng muốn tăng hay giảm và tính toán phần chênh lệch (không vượt quá stock)
+- Cập nhật cart
+c/ Delete
+- Lấy số lượng cần xóa
+- Trả lại kho và cập nhật

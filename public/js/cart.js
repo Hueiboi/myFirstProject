@@ -1,8 +1,24 @@
 const BASE_URL = 'http://localhost:3000/api';
 
+function setTempUser() { //Kiểm tra user_id, nếu chưa có lấy mặc định us001
+    const defaultUser = 'us001';
+    if(!localStorage.getItem('user_id')) {
+        localStorage.setItem('user_id', defaultUser);
+    }
+}
+
+setTempUser();
+const user_id = localStorage.getItem('user_id');
+
+//Người dùng có thể có nhiều tài khoản, hiện là select cơ bản
+//Sau khi có đăng ký sẽ sử dụng token để tách các tài khoản riêng theo id
+function selectUser() { 
+    const user_id = document.getElementById('userSelect').value;
+    localStorage.setItem('user_id', user_id);
+}
 
 async function loadCart() {
-    const res = await fetch(`${BASE_URL}/cart?user_id=us001`);
+    const res = await fetch(`${BASE_URL}/cart?user_id=${user_id}`);
     const resData = await res.json();
     renderCartList(resData);
     console.log(resData);
@@ -50,7 +66,7 @@ async function updateCartItems(product_id, oldQuantity) {
         return;
     }
 
-    const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=`, {//Sửa lại fetch URL có đính kèm user_id
+    const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=${user_id}`, {//Sửa lại fetch URL có đính kèm user_id
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({quantity: newQuantity})
@@ -81,7 +97,7 @@ async function clearCart() {
 
 async function deleteCartItems(product_id) {
     if(confirm("Are you sure to delete this item ?")) {
-        const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=`, {
+        const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=${user_id}`, {
         method: 'DELETE'
         });
 
