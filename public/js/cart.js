@@ -8,20 +8,22 @@ function setTempUser() { //Kiểm tra user_id, nếu chưa có lấy mặc đị
 }
 
 setTempUser();
-const user_id = localStorage.getItem('user_id');
 
 //Người dùng có thể có nhiều tài khoản, hiện là select cơ bản
 //Sau khi có đăng ký sẽ sử dụng token để tách các tài khoản riêng theo id
 function selectUser() { 
     const user_id = document.getElementById('userSelect').value;
     localStorage.setItem('user_id', user_id);
+    loadCart();
 }
 
 async function loadCart() {
+    document.getElementById('currentUser').textContent = `${localStorage.getItem('user_id')}'s Cart`;
+    const user_id = localStorage.getItem('user_id');
     const res = await fetch(`${BASE_URL}/cart?user_id=${user_id}`);
     const resData = await res.json();
     renderCartList(resData);
-    console.log(resData);
+    console.log(user_id);
 }
 
 /*Solution hiện tại: 
