@@ -470,20 +470,21 @@ Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương
 
 ## *Note*:  
 1. Khi nào dùng hàm kiểu nào?
-Tình huống	Gợi ý dùng
-Hàm thường, cần hoisting =>	function declaration
-Hàm gán biến, closure =>	function expression
-Hàm callback, logic ngắn =>	arrow function
-Chạy hàm ngay =>	IIFE
-Định nghĩa method trong object/class =>	object method
+- Tình huống	Gợi ý dùng
+- Hàm thường, cần hoisting =>	function declaration
+- Hàm gán biến, closure =>	function expression
+- Hàm callback, logic ngắn =>	arrow function
+- Chạy hàm ngay =>	IIFE
+- Định nghĩa method trong object/class =>	object method
 
 2. Mẹo tránh rối khi mở rộng dự án
-KỸ THUẬT                | 	GIẢI THÍCH
-Tách rõ module	        |   Mỗi module như product, cart, user nên có controller/model riêng, đừng viết chồng chéo.
-Giữ API consistent	    |   Ví dụ: mọi thao tác cần user_id thì thống nhất lấy từ req.query.user_id (sau này có auth thì chuyển sang req.user.id).
-Viết comment rõ ràng	  |   Nhất là các truy vấn SQL phức tạp, viết rõ để sau còn hiểu.
-Tạo middleware (sau này)|	  Nếu sau này có xác thực, user_id sẽ lấy từ middleware gán vào req.user.
-Viết unit test (về sau)	|   Giúp test 1 phần riêng lẻ không bị ảnh hưởng toàn bộ app
+| KỸ THUẬT                | GIẢI THÍCH                                                                 |
+|-------------------------|---------------------------------------------------------------------------|
+| Tách rõ module          | Mỗi module như product, cart, user nên có controller/model riêng, đừng viết chồng chéo. |
+| Giữ API consistent      | Ví dụ: mọi thao tác cần user_id thì thống nhất lấy từ req.query.user_id (sau này có auth thì chuyển sang req.user.id). |
+| Viết comment rõ ràng     | Nhất là các truy vấn SQL phức tạp, viết rõ để sau còn hiểu.                |
+| Tạo middleware (sau này)| Nếu sau này có xác thực, user_id sẽ lấy từ middleware gán vào req.user.    |
+| Viết unit test (về sau) | Giúp test 1 phần riêng lẻ không bị ảnh hưởng toàn bộ app.                 |
 
 3. Sync database giữa cart và product
 a/ Add
