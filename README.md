@@ -479,7 +479,7 @@ Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương
 
 2. Mẹo tránh rối khi mở rộng dự án
 | KỸ THUẬT                | GIẢI THÍCH                                                                 |
-|-------------------------|---------------------------------------------------------------------------|
+|:-------------------------|:---------------------------------------------------------------------------|
 | Tách rõ module          | Mỗi module như product, cart, user nên có controller/model riêng, đừng viết chồng chéo. |
 | Giữ API consistent      | Ví dụ: mọi thao tác cần user_id thì thống nhất lấy từ req.query.user_id (sau này có auth thì chuyển sang req.user.id). |
 | Viết comment rõ ràng     | Nhất là các truy vấn SQL phức tạp, viết rõ để sau còn hiểu.                |
