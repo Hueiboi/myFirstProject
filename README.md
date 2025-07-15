@@ -1,4 +1,7 @@
-I/ Phần Products: Nơi quản lý các sản phẩm trong kho, chứa các thông tin cơ bản về sản phẩm của cửa hàng, quyền quản lý thuộc về manager hoặc staff
+# myProject - Dự án cá nhân về quản lý kho sản phẩm và giỏ hàng, được xây dựng khi vừa học vừa thực hành dựa trên nền tảng nodejs, expressjs và postgresql
+
+
+## Products: Nơi quản lý các sản phẩm trong kho, chứa các thông tin cơ bản về sản phẩm của cửa hàng, quyền quản lý thuộc về manager hoặc staff
 1. Mẫu chia folder theo từng module
 store-management/
 │
@@ -26,10 +29,10 @@ store-management/
 └── README.md                  # Mô tả dự án, cách chạy (cực kỳ nên có)
 
 2. Cách phân chia folder theo vai trò
-	2-1. Folder cấu hình "config": kết nối PostgreSQL
-	2-2. Folder khởi tạo "server": Express app
-	2-3. Folder controller logic: Xử lý yêu cầu POST, GET, PUT,..
-	2-4. Folder model: Thao tác SQL 
+	- Folder cấu hình "config": kết nối PostgreSQL
+	- Folder khởi tạo "server": Express app
+	- Folder controller logic: Xử lý yêu cầu POST, GET, PUT,..
+	- Folder model: Thao tác SQL 
 
 3. Cấu trúc thư mục
 ```sh
@@ -58,9 +61,9 @@ store-management/
 
 ---
 
-## 1️⃣ **`config/db.js` – Kết nối PostgreSQL**
-📌 **Chứa cấu hình DB, giúp tách biệt với logic xử lý**  
-📌 **Dùng `dotenv` để tránh lộ thông tin nhạy cảm**  
+### 1️⃣ **`config/db.js` – Kết nối PostgreSQL**
+**Chứa cấu hình DB, giúp tách biệt với logic xử lý**  
+**Dùng `dotenv` để tránh lộ thông tin nhạy cảm**  
 
 ```js
 require('dotenv').config();
@@ -84,8 +87,8 @@ module.exports = con; // 👈 Xuất kết nối để dùng ở các file khác
 ---
 
 ## 2️⃣ **`models/productModel.js` – Truy vấn Database**
-📌 **Tách biệt code truy vấn khỏi controller để dễ bảo trì**  
-📌 **Xử lý truy vấn PostgreSQL, trả về dữ liệu JSON**  
+**Tách biệt code truy vấn khỏi controller để dễ bảo trì**  
+**Xử lý truy vấn PostgreSQL, trả về dữ liệu JSON**  
 
 ```js
 const con = require('../config/db');
@@ -105,8 +108,8 @@ module.exports = { getAllProducts, addProduct };
 ---
 
 ## 3️⃣ **`controllers/productController.js` – Xử lý logic API**
-📌 **Nhận request từ route, gọi model để xử lý dữ liệu, trả về response**  
-📌 **Có `try...catch` để bắt lỗi khi truy vấn DB**  
+**Nhận request từ route, gọi model để xử lý dữ liệu, trả về response**  
+**Có `try...catch` để bắt lỗi khi truy vấn DB**  
 
 ```js
 const { getAllProducts, addProduct } = require('../models/productModel');
@@ -136,8 +139,8 @@ module.exports = { fetchProducts, createProduct };
 ---
 
 ## 4️⃣ **`routes/productRoutes.js` – Khai báo API**
-📌 **Chứa route GET & POST cho sản phẩm**  
-📌 **Gọi controller để xử lý request**  
+**Chứa route GET & POST cho sản phẩm**  
+**Gọi controller để xử lý request**  
 
 ```js
 const express = require('express');
@@ -153,8 +156,8 @@ module.exports = router;
 ---
 
 ## 5️⃣ **`server.js` – Khởi động Server**
-📌 **Import các route, middleware**  
-📌 **Không chứa xử lý API, chỉ dùng để khởi động**  
+**Import các route, middleware**  
+**Không chứa xử lý API, chỉ dùng để khởi động**  
 
 ```js
 require('dotenv').config();
@@ -172,7 +175,7 @@ app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${
     0. Các cách test API
     Để test tính năng tìm kiếm sản phẩm qua filter, bạn có thể thử bằng Postman, curl, hoặc fetch (trong frontend). Dưới đây là hướng dẫn cho từng cách:
 
-        1. Test bằng Postman/Thunder (dễ dùng nhất)
+        - Test bằng Postman/Thunder (dễ dùng nhất)
         Giả sử bạn đã có server chạy ở http://localhost:3000 và route như sau:
         router.get('/', checkSchema(getProductSchema), productController.getAllProducts);
         Cách test:
@@ -190,10 +193,10 @@ app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${
         ...
         ]
 
-        2. Test bằng curl (terminal)
+        - Test bằng curl (terminal)
         curl "http://localhost:3000/products?filter=Apple"
 
-        3. Test bằng fetch trong frontend
+        - Test bằng fetch trong frontend
         Giả sử bạn đã có UI (hoặc thử trên Chrome DevTools → tab Console):
         fetch('http://localhost:3000/products?filter=Apple')
         .then(res => res.json())
@@ -327,7 +330,7 @@ app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${
       const query = `UPDATE "productTable" SET ${fields.join(', ')} WHERE id = $${index}`;
       const result = await con.query(query, values);
 
-II/ Phần Cart: Nơi chứa sản phẩm sau khi khách hàng thêm vào, chứa thông tin cơ bản về sản phẩm
+## Cart: Nơi chứa sản phẩm sau khi khách hàng thêm vào, chứa thông tin cơ bản về sản phẩm
 sẽ được sync tương ứng trong database, quyền truy cập thuộc về khách hàng
 1. Cấu trúc thư mục chuẩn RESTful Backend
 myProject/
@@ -358,8 +361,8 @@ myProject/
 │
 ├── server.js
 └── README.md
-🧩 File mẫu cho giỏ hàng (Cart)
-📄 models/cartModel.js
+*File mẫu cho giỏ hàng (Cart)*
+### models/cartModel.js
 
 2. Tương tự Products ở những chức năng chính cơ bản (Mẫu)
 const con = require('../db/connection');
@@ -385,7 +388,7 @@ const cartModel = {
 };
 
 module.exports = cartModel;
-📄 controllers/cartController.js
+### controllers/cartController.js
 
 const cartModel = require('../models/cartModel');
 
@@ -417,7 +420,8 @@ exports.clearCart = async (req, res) => {
   await cartModel.clear();
   res.json({ message: 'Cart cleared' });
 };
-📄 routes/cartRoutes.js
+
+### routes/cartRoutes.js
 
 const express = require('express');
 const router = express.Router();
@@ -430,7 +434,7 @@ router.delete('/:product_id', cartController.removeCartItem);
 router.delete('/', cartController.clearCart);
 
 module.exports = router;
-📄 server.js (Thêm route)
+### server.js (Thêm route)
 
 const express = require('express');
 const app = express();
@@ -459,7 +463,7 @@ Xóa toàn bộ giỏ hàng
 
 Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương tự như phần product bạn đã làm.
 
-*Note*:  
+## *Note*:  
 1. Khi nào dùng hàm kiểu nào?
 Tình huống	Gợi ý dùng
 Hàm thường, cần hoisting =>	function declaration
