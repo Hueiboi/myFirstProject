@@ -333,6 +333,7 @@ app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${
 ## Cart: Nơi chứa sản phẩm sau khi khách hàng thêm vào, chứa thông tin cơ bản về sản phẩm
 sẽ được sync tương ứng trong database, quyền truy cập thuộc về khách hàng
 1. Cấu trúc thư mục chuẩn RESTful Backend
+```sh
 myProject/
 ├── controllers/
 │   ├── productController.js
@@ -361,10 +362,12 @@ myProject/
 │
 ├── server.js
 └── README.md
+```
 *File mẫu cho giỏ hàng (Cart)*
 ### models/cartModel.js
 
 2. Tương tự Products ở những chức năng chính cơ bản (Mẫu)
+```js
 const con = require('../db/connection');
 
 const cartModel = {
@@ -388,8 +391,9 @@ const cartModel = {
 };
 
 module.exports = cartModel;
+```
 ### controllers/cartController.js
-
+```js
 const cartModel = require('../models/cartModel');
 
 exports.getCart = async (req, res) => {
@@ -420,9 +424,9 @@ exports.clearCart = async (req, res) => {
   await cartModel.clear();
   res.json({ message: 'Cart cleared' });
 };
-
+```
 ### routes/cartRoutes.js
-
+```js
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cartController');
@@ -434,8 +438,9 @@ router.delete('/:product_id', cartController.removeCartItem);
 router.delete('/', cartController.clearCart);
 
 module.exports = router;
+```
 ### server.js (Thêm route)
-
+```js
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -449,7 +454,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes); // 👈 Thêm route mới
 
 app.listen(3000, () => console.log('Server running on http://localhost:3000'));
-
+```
 *Gợi ý thao tác CRUD từ client (HTML + JS)
 Thêm sản phẩm vào giỏ (POST /api/cart)
 
