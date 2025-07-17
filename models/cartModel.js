@@ -13,7 +13,7 @@ const cartModel = {
 
     //Sync số lượng trực tiếp từ kho và cart => giảm kho, tăng cart
     add: async (product_id, quantity, user_id) => {
-        //Kiểm tra số lượng trong kh0
+        //Kiểm tra số lượng trong kho
         const checkStock = await con.query(
             'select * from "productTable" where id = $1', [product_id]
         );
@@ -61,14 +61,14 @@ const cartModel = {
         //Tính toán phần chênh lệch => tăng hay giảm phụ thuộc vào diff và cập nhật stock trong product
         if(diff > 0){
             await con.query(
-                'update "productTable" set stock_quantity = stock_quantity - $1 where id = $2 and user_id = $3',
-                [diff, product_id, user_id]
+                'update "productTable" set stock_quantity = stock_quantity - $1 where id = $2',
+                [diff, product_id]
             )
         }
         else if(diff < 0) {
             await con.query(
-                'update "productTable" set stock_quantity = stock_quantity + $1 where id = $2 and user_id = $3',
-                [-diff, product_id, user_id]
+                'update "productTable" set stock_quantity = stock_quantity + $1 where id = $2',
+                [-diff, product_id]
             )
         }
         else {
@@ -77,7 +77,7 @@ const cartModel = {
        
         //Cập nhật cart
         return await con.query(
-            'update "cartTable" set quantity = quantity + $1 where product_id = $2 and user _id = $3',
+            'update "cartTable" set quantity = quantity + $1 where product_id = $2 and user_id = $3',
             [diff, product_id, user_id]
         )
     },

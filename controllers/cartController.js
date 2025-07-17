@@ -18,8 +18,7 @@ exports.getCart = async (req, res) => {
 
 exports.addCart = async (req, res) => {
     try {
-        const {product_id, quantity } = req.body;
-        const {user_id} = req.query
+        const {product_id, quantity, user_id } = req.body;
         //Nếu ID không tồn tại trong bảng product thì không thể thêm vào cart
         //ID trong cart đối chiếu cho product với foreign key
         const checkProduct = await con.query('Select * from "productTable" where id = $1',[product_id]);
@@ -51,8 +50,7 @@ exports.updateCart = async (req, res) => {
         //Không phải {id} = req.params.id vì khi chọn id thì nó đã là string
         //Nếu muốn destructure => {id} = req.params
         const {product_id} = req.params;
-        const {user_id} = req.query
-        const {quantity}= req.body;
+        const {quantity, user_id}= req.body;
 
         if(!product_id || !quantity || !user_id) {
             return res.status(400).send("Missing product_id, quantity or user_id")
@@ -71,7 +69,7 @@ exports.updateCart = async (req, res) => {
 
 exports.deleteCart = async (req, res) => {
     try {
-        const {user_id} = req.query
+        const {user_id} = req.body
         const {product_id} = req.params;
 
         if(!product_id || !user_id) {
@@ -97,7 +95,7 @@ exports.deleteCart = async (req, res) => {
 
 exports.clearCart = async (req, res) => {
     try {
-        const {user_id} = req.query
+        const {user_id} = req.body
 
         if(!user_id) {
             return res.status(400).send("Missing user_id")

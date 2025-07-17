@@ -11,7 +11,7 @@ app.use('/api/cart', cartRoutes);
 app.use(express.static(path.join(__dirname, 'public')));
 //Routing đường dẫn đến các giao diện tĩnh mặc định
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/html/index.html')) //route đến trang HOME
+    res.sendFile(path.join(__dirname, 'public/html/home.html')) //route đến trang HOME
 });
 
 app.get('/products', (req, res) => {

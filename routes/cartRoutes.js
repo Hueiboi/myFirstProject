@@ -6,7 +6,7 @@ const {addCartSchema, updateCartSchema} = require('../utils/validationSchema')
 const {handleValidationErrors} = require('../middlewares/validate');
 
 router.get('/', cartController.getCart);
-router.post('/', checkSchema(addCartSchema), handleValidationErrors,cartController.addCart);
+router.post('/', checkSchema(addCartSchema), handleValidationErrors, cartController.addCart);
 router.put('/:product_id', checkSchema(updateCartSchema), handleValidationErrors,cartController.updateCart);
 router.delete('/:product_id', cartController.deleteCart);
 router.delete('/', cartController.clearCart);

@@ -84,8 +84,6 @@ function renderProductList(products) { // Hiển thị danh sách sản phẩm
         <td>
           <button onclick="updateProduct('${p.id}', '${p.name}', '${p.price}', ${p.stock_quantity})">Edit</button>
           <button onclick="deleteProduct('${p.id}')">Delete</button>
-          <input type="number" min="1" max="${p.stock_quantity}" placeholder="quantity">
-          <button onclick="addToCart()">Add to cart </button>
           </td>
       </tr>
     `;

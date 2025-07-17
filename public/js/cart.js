@@ -62,16 +62,22 @@ function renderCartList(cartItems) {
 async function updateCartItems(product_id, oldQuantity) {
     const input = prompt('New quantity: ', oldQuantity);
     const newQuantity = parseInt(input, 10);
+    const user_id = localStorage.getItem('user_id');
+
+    if(!user_id){
+        alert("User not selected or logged in");
+        return;
+    }
 
     if(newQuantity <= 0 || isNaN(newQuantity)) {
         alert("Please enter a valid number!");
         return;
     }
 
-    const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=${user_id}`, {//Sửa lại fetch URL có đính kèm user_id
+    const res = await fetch(`${BASE_URL}/cart/${product_id}`, {//Sửa lại fetch URL có đính kèm user_id
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({quantity: newQuantity})
+        body: JSON.stringify({quantity: newQuantity, user_id})
     })
 
     if(res.ok) {
@@ -98,9 +104,12 @@ async function clearCart() {
 }
 
 async function deleteCartItems(product_id) {
+    const user_id = localStorage.getItem('user_id');
     if(confirm("Are you sure to delete this item ?")) {
-        const res = await fetch(`${BASE_URL}/cart/${product_id}?user_id=${user_id}`, {
-        method: 'DELETE'
+        const res = await fetch(`${BASE_URL}/cart/${product_id}`, {
+        method: 'DELETE',
+        headers: {'Content-type': 'application/json'},
+        body: JSON.stringify({user_id})
         });
 
         if(res.ok) {

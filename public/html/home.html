@@ -2,18 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Product Manager</title>
+  <title>Home</title>
   <style>
     body { font-family: Arial; margin: 30px; }
     input, button { margin: 4px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+
+    .header { 
+      display: flex; 
+      justify-content: space-between;
+       align-items: center; 
+       margin-bottom: 20px; 
+      }
+
+    .cart__info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .userSelect {
+      padding: 5px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
-  <h2>Search Product</h2>
-  <input type="text" id="filter" placeholder="Find by name..." />
-  <button onclick="searchProducts()">Search</button>
+  <div class="header">
+    <div class="searchProduct">
+      <h2>Search Product</h2>
+      <input type="text" id="filter" placeholder="Find by name..." />
+      <button onclick="searchProducts()">Search</button>
+    </div>
+  
+    <div class="cart__info">
+      <h1 id="currentUser"></h1>
+      <select id="userSelect" class="userSelect" onchange="selectUser()">
+      <option value="us001">User 1</option>
+      <option value="us002">User 2</option>
+      </select> 
+    </div>
+  </div>
 
   <h2>Product List</h2>
   <div class="sortingOption">
@@ -40,9 +71,9 @@
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody id="productList__User"></tbody>
+    <tbody id="homeList"></tbody>
   </table>
 
-  <script src="../js/products.js"></script>
+  <script src="../js/home.js"></script>
 </body>
 </html>
