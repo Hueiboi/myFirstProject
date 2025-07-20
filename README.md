@@ -3,14 +3,15 @@
 
 ## Products: Nơi quản lý các sản phẩm trong kho, chứa các thông tin cơ bản về sản phẩm của cửa hàng, quyền quản lý thuộc về manager hoặc staff
 1. Mẫu chia folder theo từng module
+```sh
 store-management/
 │
 ├── node_modules/              # Thư viện cài bằng npm (auto generate)
 ├── package.json               # Thông tin package, script, dependencies
 ├── .env                       # File chứa biến môi trường (port, DB credentials)
-├── server.js (hoặc index.js)  # File main khởi động server Express
+├── server.js (index.js)  # File main khởi động server Express
 │
-├── config/                    # Cấu hình, ví dụ: db.js để kết nối PostgreSQL
+├── config/                    # Cấu hình kết nối
 │   └── db.js
 │
 ├── controllers/               # Xử lý logic cho các route
@@ -26,7 +27,8 @@ store-management/
 │   ├── index.html
 │   └── main.js
 │
-└── README.md                  # Mô tả dự án, cách chạy (cực kỳ nên có)
+└── README.md                  # Mô tả dự án, cách chạy 
+```
 
 2. Cách phân chia folder theo vai trò
 	- Folder cấu hình "config": kết nối PostgreSQL
