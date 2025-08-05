@@ -4,8 +4,13 @@ const cartModel = require('../models/cartModel');
 exports.getCart = async (req, res) => {
     try {
         const {user_id} = req.query
+
+        if(!user_id) {
+            return res.status(400).json({status: "error", msg: "user id not found"});
+        }
+
         const result = await cartModel.getAll(user_id);
-        res.json(result.rows);
+        res.json({data: result.rows});
     }
     catch(err){
         res.status(500).json({
@@ -27,21 +32,15 @@ exports.addCart = async (req, res) => {
         }
 
         if(!product_id || !quantity || !user_id) {
-            return res.status(400).send("Missing product_id, quantity or user_id")
+            return res.status(400).json({status: "error",msg: "Missing product_id, quantity or user_id"});
         }
 
         const result = await cartModel.add(product_id, quantity, user_id);
-        res.status(201).json({
-            message: "Add successfully",
-            data: result.rows[0]
-        });
+        res.status(201).json({status: "success", msg: "Add successfully", data: result.rows[0]});
 
     }
     catch(err){
-         res.status(500).json({
-            message: "Can not add to cart!",
-            error: err.message
-        });
+         res.status(500).json({msg: "Can not add to cart!", error: err.message});
     }
 }
 
@@ -73,23 +72,20 @@ exports.deleteCart = async (req, res) => {
         const {product_id} = req.params;
 
         if(!product_id || !user_id) {
-            return res.status(400).send("Missing product_id or user_id")
+            return res.status(400).json({status: "error", msg: "Missing product_id or user_id"})
         }
 
         const result = await cartModel.delete(product_id, user_id);
         if(result.rowCount > 0) {
-            res.status(200).send("Delete successfully");
+            res.status(200).json({msg: "Delete successfully"});
         }
         else {
-            res.status(404).send("Can not find items");
+            res.status(404).json({msg: "Can not find items"});
         }
 
     }
     catch(err){
-         res.status(500).json({
-            message: "Can not delete item!",
-            error: err.message
-        });
+         res.status(500).json({msg: "Can not delete item!", error: err.message});
     }
 }
 
@@ -101,13 +97,15 @@ exports.clearCart = async (req, res) => {
             return res.status(400).send("Missing user_id")
         }
         const result = await cartModel.clear(user_id);
-        res.status(200).send("Clear successfully");
+        if(result.rowCount > 0) {
+            res.status(200).json({msg: "Clear successfully"});
+        }
+        else {
+            res.status(404).json({msg: "Can not find items"});
+        }
     }
     catch(err){
-        res.status(500).json({
-            message: "Can not clear data!",
-            error: err.message
-        });
+        res.status(500).json({msg: "Can not clear data!",error: err.message});
         console.error(err);
     }
 }

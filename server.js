@@ -2,11 +2,18 @@ const express = require('express');
 const app = express();
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const authRoutes = require('./routes/authRoutes');
 const path = require('path');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+dotenv.config();
+const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
 //Routing đường dẫn đến các giao diện tĩnh mặc định
@@ -28,4 +35,4 @@ app.get('/cart', (req, res) => {
 // Nếu bạn không viết app.get(...),
 // thì khi truy cập / hay /cart, trình duyệt không nhận được file HTML tương ứng.
 
-app.listen(3000, () => console.log("Server is running on port 3000"))
+app.listen(PORT , () => console.log(`Server is running on port ${PORT}`))

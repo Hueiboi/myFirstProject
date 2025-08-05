@@ -7,11 +7,12 @@ exports.getAllProducts = async (req, res) => {
         const {sortBy, order} = req.query;
 
         const result = await product.getAllSorted(sortBy, order);
-        res.status(200).json({data: result.rows});
+        res.status(200).json({status: "success", data: result.rows, msg: "get successfully"});
     }
     catch(err) {
-        res.status(500).json({message: "Error retrieving products"})
+        res.status(500).json({message: "Error retrieving products"}) 
         console.error(err);
+        //Nên trả về {} là cách chuẩn, json("error") không sai nhưng không đầy đủ
     }
 }
 //Get product by name
@@ -20,7 +21,7 @@ exports.getAllByName = async (req, res) => {
         const {filter} = req.query;
 
         const result = await product.getByName(filter);
-        res.status(200).json({data: result.rows});
+        res.status(200).json({status: "success", data: result.rows, msg: "get by name successfully"});
     }
     catch(err) {
         res.status(500).json({message: "Error retrieving products"})
@@ -70,6 +71,19 @@ exports.getProductsById = async (req, res) => {
 exports.createProduct = async (req, res) => {
     try {
         const {name, id, price, stock_quantity} = req.body;
+
+        if(!name || !id || !price || !stock_quantity) {
+            return res.status(400).json({status: "error", msg: "lack of required info"})
+        }
+
+        if(typeof name !== "string",
+            typeof id !== "string",
+            typeof price !== "number",
+            typeof stock_quantity !== "number"
+        ) {
+            res.status(400).json({status: "error", msg: "invalid data type"})
+        }
+
         const result = await product.create(name, id, price, stock_quantity);
         res.status(201).send("Product created successfully");
     }
@@ -112,24 +126,33 @@ exports.updateProduct = async (req, res) => {//Update 1 trường mà không gâ
 
         if(!id) return res.status(400).json({message: "Missing product ID"});
 
-        let fields = [];
-        let values = [];
+
+        const fieldsToUpdate = ['name', 'price', 'stock_quantity'];
+        const values = [];
+        const fields = [];
         let index = 1;
 
-        if(name !== undefined){
-            fields.push(`name = $${index++}`);
-            values.push(name);
+        for(const field of fieldsToUpdate) {
+            if(req.body[field] !== undefined) {
+                fields.push(`${field} = $${index++}`);
+                values.push(req.body[field]);
+            }
         }
 
-        if(price !== undefined){
-            fields.push(`price = $${index++}`);
-            values.push(price);
-        }
+        // if(name !== undefined){
+        //     fields.push(`name = $${index++}`);
+        //     values.push(name);
+        // }
 
-        if(stock_quantity !== undefined){
-            fields.push(`stock_quantity = $${index++}`);
-            values.push(stock_quantity);
-        }
+        // if(price !== undefined){
+        //     fields.push(`price = $${index++}`);
+        //     values.push(price);
+        // }
+
+        // if(stock_quantity !== undefined){
+        //     fields.push(`stock_quantity = $${index++}`);
+        //     values.push(stock_quantity);
+        // }
 
         if(fields.length === 0) return res.status(400).json({message: "No fields to update"});
 
@@ -152,6 +175,11 @@ exports.deleteProduct = async (req, res) => {
     try {
         const id = req.params.id;
         const result = await product.delete(id);
+
+        if(!id) {
+            return res.status(400).json({status: "error", msg: "Need an exact ID"})
+        }
+
         if(result.rowCount > 0) {
             res.status(201).send("Product deleted successfully");
         } else {

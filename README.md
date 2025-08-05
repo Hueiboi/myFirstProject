@@ -470,6 +470,10 @@ Xóa toàn bộ giỏ hàng
 
 Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương tự như phần product bạn đã làm.
 
+## JWT và bảo mật (mã hóa mật khẩu bcrypt)
+
+
+
 ## *Note*:  
 1. Khi nào dùng hàm kiểu nào?
 - Tình huống	Gợi ý dùng
