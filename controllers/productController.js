@@ -99,19 +99,22 @@ exports.createManyProducts = async (req, res) => {
         if(!Array.isArray(products) || products.length === 0) {
             return res.status(400).send("Invalid input: expected an array of products");
         }
-        const insertProducts = await Promise.all(
-            products.map( async p => {
-                const {name, id, price, stock_quantity} = p;
-                try {
-                    await product.create(name, id, price, stock_quantity);
-                    return {name, id, price, stock_quantity, status: 'created many products successfully'};
-                }
-                catch(err){
-                    console.error(err);
-                    return {name, id, price, stock_quantity, status: 'failed to create product'};
-                }
-            })
-        )
+       const results = await Promise.all(
+        products.map(async p => {
+        const { name, id, price, stock_quantity } = p;
+        if (!name || !id || price == null || stock_quantity == null) {
+          return { ...p, status: "invalid product data" };
+        }
+        //...p là spread operator, trả về 1 object sao chép thuộc tính của obj p và thêm status
+        try {
+          await product.create(name, id, price, stock_quantity);
+          return { ...p, status: "created successfully" };
+        } catch (err) {
+          console.error(err);
+          return { ...p, status: "failed to create" };
+        }
+      })
+    );
     }
     catch(err) {
         res.status(500).json({message: "Error creating products"})
@@ -158,8 +161,7 @@ exports.updateProduct = async (req, res) => {//Update 1 trường mà không gâ
 
         values.push(id);
 
-        const query = `update "productTable" set ${fields.join(',')} where id = $${index}`
-        const result = await con.query(query, values);
+        const result = await con.query(`update "productTable" set ${fields.join(',')} where id = $${index}`, values);
 
         if(result.rowCount === 0) return res.status(404).json({message: "Product not found"});
 

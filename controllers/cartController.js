@@ -3,7 +3,9 @@ const cartModel = require('../models/cartModel');
 
 exports.getCart = async (req, res) => {
     try {
-        const {user_id} = req.query
+        console.log("Token Decoded: ", req.user);
+
+        const user_id = req.user.user_id;
 
         if(!user_id) {
             return res.status(400).json({status: "error", msg: "user id not found"});
@@ -23,7 +25,9 @@ exports.getCart = async (req, res) => {
 
 exports.addCart = async (req, res) => {
     try {
-        const {product_id, quantity, user_id } = req.body;
+        const {product_id, quantity} = req.body;
+        const user_id = req.user.user_id;
+        // Không nên sử dụng user req.body vì người dùng có thể giả mạo để thêm vào giỏ người khác
         //Nếu ID không tồn tại trong bảng product thì không thể thêm vào cart
         //ID trong cart đối chiếu cho product với foreign key
         const checkProduct = await con.query('Select * from "productTable" where id = $1',[product_id]);
