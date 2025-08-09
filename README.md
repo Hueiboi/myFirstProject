@@ -173,168 +173,168 @@ app.use('/api/products', productRoutes); // 👈 Sử dụng route từ `routes/
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server chạy trên http://localhost:${PORT}`));
 ```
-4. Những thắc mắc và lưu ý kĩ thuật
-    0. Các cách test API
-    Để test tính năng tìm kiếm sản phẩm qua filter, bạn có thể thử bằng Postman, curl, hoặc fetch (trong frontend). Dưới đây là hướng dẫn cho từng cách:
+### Những thắc mắc và lưu ý kĩ thuật
+0. Các cách test API
+Để test tính năng tìm kiếm sản phẩm qua filter, bạn có thể thử bằng Postman, curl, hoặc fetch (trong frontend). Dưới đây là hướng dẫn cho từng cách:
 
-        - Test bằng Postman/Thunder (dễ dùng nhất)
-        Giả sử bạn đã có server chạy ở http://localhost:3000 và route như sau:
-        router.get('/', checkSchema(getProductSchema), productController.getAllProducts);
-        Cách test:
-        Method: GET
+    - Test bằng Postman/Thunder (dễ dùng nhất)
+    Giả sử bạn đã có server chạy ở http://localhost:3000 và route như sau:
+    router.get('/', checkSchema(getProductSchema), productController.getAllProducts);
+    Cách test:
+    Method: GET
 
-        URL http://localhost:3000/products?filter=Apple
-        Bấm Send, nếu bạn đã viết hàm filterByName trong controller thì kết quả sẽ là:
+    URL http://localhost:3000/products?filter=Apple
+    Bấm Send, nếu bạn đã viết hàm filterByName trong controller thì kết quả sẽ là:
 
-        [
-        {
-            "id": 1,
-            "name": "Apple",
-            "price": 100
-        },
-        ...
-        ]
+    [
+    {
+        "id": 1,
+        "name": "Apple",
+        "price": 100
+    },
+    ...
+    ]
 
-        - Test bằng curl (terminal)
-        curl "http://localhost:3000/products?filter=Apple"
+    - Test bằng curl (terminal)
+    curl "http://localhost:3000/products?filter=Apple"
 
-        - Test bằng fetch trong frontend
-        Giả sử bạn đã có UI (hoặc thử trên Chrome DevTools → tab Console):
-        fetch('http://localhost:3000/products?filter=Apple')
-        .then(res => res.json())
-        .then(data => console.log(data))
-        .catch(err => console.error(err));
+    - Test bằng fetch trong frontend
+    Giả sử bạn đã có UI (hoặc thử trên Chrome DevTools → tab Console):
+    fetch('http://localhost:3000/products?filter=Apple')
+    .then(res => res.json())
+    .then(data => console.log(data))
+    .catch(err => console.error(err));
 
-    1. Trình tự luồng xử lý từ server.js
-    - server.js nhận request -> route tới chức năng
-    - productRoutes.js xác định đường dẫn và gắn controller xử lý
-    - productController.js nhận request từ route -> logic -> trả response
-    - productModel.js thực hiện thao tác lên database
-    - database phản hồi lại model rồi gửi lên controller để trả lại response
-    - controller trả lại về cho client
-    => server -> routes -> controller -> model -> db -> postgre
+1. Trình tự luồng xử lý từ server.js
+- server.js nhận request -> route tới chức năng
+- productRoutes.js xác định đường dẫn và gắn controller xử lý
+- productController.js nhận request từ route -> logic -> trả response
+- productModel.js thực hiện thao tác lên database
+- database phản hồi lại model rồi gửi lên controller để trả lại response
+- controller trả lại về cho client
+=> server -> routes -> controller -> model -> db -> postgre
 
-    2. Pool và Client 
-    - Client cần connect() và end(), dành cho dự án nhỏ, đơn giản 
-    - Pool tự động quản lý nhiều kết nối giúp xử lý nhiều request đồng thời mà ko cần connect dành cho dự án lớn thật sự
+2. Pool và Client 
+- Client cần connect() và end(), dành cho dự án nhỏ, đơn giản 
+- Pool tự động quản lý nhiều kết nối giúp xử lý nhiều request đồng thời mà ko cần connect dành cho dự án lớn thật sự
 
-    3. Khác biệt giữa app.use(express.json()) và express.Router() là gì? Vì sao dùng Router() khi chia file?
-    - app.use(express.json()): middleware giúp parse JSON body từ client. Thường dùng một lần duy nhất trong server.js hoặc main.js.
-    - express.Router(): là mini app riêng biệt để quản lý các route. Dùng khi tách code ra từng file (ví dụ productRoutes.js), giúp tổ chức rõ ràng hơn.
+3. Khác biệt giữa app.use(express.json()) và express.Router() là gì? Vì sao dùng Router() khi chia file?
+- app.use(express.json()): middleware giúp parse JSON body từ client. Thường dùng một lần duy nhất trong server.js hoặc main.js.
+- express.Router(): là mini app riêng biệt để quản lý các route. Dùng khi tách code ra từng file (ví dụ productRoutes.js), giúp tổ chức rõ ràng hơn.
 
-    4. Tại sao trong file routes chỉ viết router.get('/') thay vì /getAllData như lúc viết trong main.js?
-    - Trong server.js, Đã có base path:
-    app.use('/api/products', productRoutes);
-    - Thực tế 
-    router.get('/') → /api/products
+4. Tại sao trong file routes chỉ viết router.get('/') thay vì /getAllData như lúc viết trong main.js?
+- Trong server.js, Đã có base path:
+app.use('/api/products', productRoutes);
+- Thực tế 
+router.get('/') → /api/products
 
-    router.post('/') → /api/products
+router.post('/') → /api/products
 
-    router.get('/:id') → /api/products/:id
+router.get('/:id') → /api/products/:id
 
-    router.put('/:id') → /api/products/:id
+router.put('/:id') → /api/products/:id
 
-    router.delete('/:id') → /api/products/:id
+router.delete('/:id') → /api/products/:id
 
-    5. Các mã lỗi khi tương tác với HTTP
-    - 200: OK -> request thành công
-    - 201: Created -> tạo mới thành công (POST)
-    - 400: Bad request -> request sai hoặc thiếu
-    - 404: Not found -> Không thấy tài nguyên
-    - 500: Internal server error -> Lỗi từ SV hoặc DB
+5. Các mã lỗi khi tương tác với HTTP
+- 200: OK -> request thành công
+- 201: Created -> tạo mới thành công (POST)
+- 400: Bad request -> request sai hoặc thiếu
+- 404: Not found -> Không thấy tài nguyên
+- 500: Internal server error -> Lỗi từ SV hoặc DB
 
-    6. Endpoint ?
-    - Là URL để giao tiếp với server thông qua API
-    - User endpoint một API URL để phục vụ thao tác dữ liệu user như tạo, đọc, sửa, xóa user
+6. Endpoint ?
+- Là URL để giao tiếp với server thông qua API
+- User endpoint một API URL để phục vụ thao tác dữ liệu user như tạo, đọc, sửa, xóa user
 
-    7. Vì sao các function có (req, res) không cần truyền tham số
-    - Express tự động cung cấp khi có request gửi lên server.
-    - Cách hoạt động:
-        1. API client gửi request (ví dụ từ Thunder Client hoặc trình duyệt).
-        2. Express bắt request và gọi function tương ứng trong routes.
-        3. Express tự động truyền req (thông tin request) và res (phản hồi) vào function.
+7. Vì sao các function có (req, res) không cần truyền tham số
+- Express tự động cung cấp khi có request gửi lên server.
+- Cách hoạt động:
+    1. API client gửi request (ví dụ từ Thunder Client hoặc trình duyệt).
+    2. Express bắt request và gọi function tương ứng trong routes.
+    3. Express tự động truyền req (thông tin request) và res (phản hồi) vào function.
 
-    8. Express validator và middleware dùng chung cho việc validate
-    - Tách file ra một file validate, nơi chứa các hàm xử lý lỗi từ request
-    - checkSchema là middleware để validate body, query, params...
-        + Query: dùng khi giá trị nằm sau dấu ?, thường để lọc, tìm kiếm, sắp xếp. /api/products?query=
-        + Params: dùng khi giá trị là một phần của đường dẫn URL /api/products/id
-        → Truy cập qua req.query.
-    - Phải dùng validationResult() để kiểm tra lỗi sau checkSchema.
-    - Có thể viết middleware handleValidationErrors dùng lại nhiều lần để tránh lặp code.
-    - next() trong handleValidationErrors để chuyển tiếp sang thực thi controllers 
-    - Các cách tối ưu:
-        1️⃣ Dùng optional: false cho các field bắt buộc → Đảm bảo dữ liệu phải có.
-        2️⃣ Dùng isIn([...]) thay vì options: [...] để kiểm tra giá trị hợp lệ.
-        3️⃣ Kết hợp notEmpty và isLength để kiểm tra chuỗi → Tránh nhập giá trị trống hoặc quá ngắn/dài.
-        4️⃣ Thêm trim: true để loại bỏ khoảng trắng dư thừa → Giúp dữ liệu sạch hơn.
-        5️⃣ Dùng toInt() hoặc toFloat() để tự động chuyển đổi kiểu dữ liệu → Tránh lỗi khi nhập sai kiểu số.
+8. Express validator và middleware dùng chung cho việc validate
+- Tách file ra một file validate, nơi chứa các hàm xử lý lỗi từ request
+- checkSchema là middleware để validate body, query, params...
+    + Query: dùng khi giá trị nằm sau dấu ?, thường để lọc, tìm kiếm, sắp xếp. /api/products?query=
+    + Params: dùng khi giá trị là một phần của đường dẫn URL /api/products/id
+    → Truy cập qua req.query.
+- Phải dùng validationResult() để kiểm tra lỗi sau checkSchema.
+- Có thể viết middleware handleValidationErrors dùng lại nhiều lần để tránh lặp code.
+- next() trong handleValidationErrors để chuyển tiếp sang thực thi controllers 
+- Các cách tối ưu:
+    1️⃣ Dùng optional: false cho các field bắt buộc → Đảm bảo dữ liệu phải có.
+    2️⃣ Dùng isIn([...]) thay vì options: [...] để kiểm tra giá trị hợp lệ.
+    3️⃣ Kết hợp notEmpty và isLength để kiểm tra chuỗi → Tránh nhập giá trị trống hoặc quá ngắn/dài.
+    4️⃣ Thêm trim: true để loại bỏ khoảng trắng dư thừa → Giúp dữ liệu sạch hơn.
+    5️⃣ Dùng toInt() hoặc toFloat() để tự động chuyển đổi kiểu dữ liệu → Tránh lỗi khi nhập sai kiểu số.
 
-    9. Vì sao bị "require not defined" khi dùng export ?
-    - Export được sử dụng cho ESModule cùng với import
-    - Nếu sử dụng commonJS thì phải sử dụng module.exports hoặc exports.function() và require 
+9. Vì sao bị "require not defined" khi dùng export ?
+- Export được sử dụng cho ESModule cùng với import
+- Nếu sử dụng commonJS thì phải sử dụng module.exports hoặc exports.function() và require 
 
-    10. Lưu ý kết nối BE, FE 
-    - Kết nối FE → BE
-    Trong server.js, sử dụng middleware express.static() để phục vụ file HTML:
-    const path = require('path');
-    app.use(express.static(path.join(__dirname, 'public')));
+10. Lưu ý kết nối BE, FE 
+- Kết nối FE → BE
+Trong server.js, sử dụng middleware express.static() để phục vụ file HTML:
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
 
-    - Giao tiếp qua API
-    Giao diện HTML sử dụng fetch() để gọi API từ server Express.
-    Ví dụ tạo sản phẩm:
- 
-    fetch('/api/products', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Apple', id: 1, price: 12.5 })
-    });
+- Giao tiếp qua API
+Giao diện HTML sử dụng fetch() để gọi API từ server Express.
+Ví dụ tạo sản phẩm:
 
-    - Giao diện sử dụng fetch() để gọi các endpoint từ Express backend
-    Mỗi request sẽ đi qua các file route và được xử lý tại controller tương ứng
-    Ví dụ: POST /api/products → createProduct() trong productController.js.
+fetch('/api/products', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ name: 'Apple', id: 1, price: 12.5 })
+});
 
-    - Vì sao trong stringify là {id, name, price}
-    Trong stringify nhận 1 đối số duy nhất là obj để chuyển sang string nên phải đưa vào dạng {}
+- Giao diện sử dụng fetch() để gọi các endpoint từ Express backend
+Mỗi request sẽ đi qua các file route và được xử lý tại controller tương ứng
+Ví dụ: POST /api/products → createProduct() trong productController.js.
 
-    - Đoạn {} trong fetch là gì ?
-        1. Cấu hình request giúp thực hiện đúng yêu cầu Create/Delete/Post
-        2. headers cho biết kiểu dữ liệu gửi đi (application/json)
-        3. body cho biết dữ liệu muốn gửi lên server, thường ở dạng JSON nhận string
+- Vì sao trong stringify là {id, name, price}
+Trong stringify nhận 1 đối số duy nhất là obj để chuyển sang string nên phải đưa vào dạng {}
 
-    11. Sorting sản phẩm theo query parameter (SQL động)
-    - Giao diện gọi API  /api/products?sortBy=name&order=asc
-    -> Sửa model để cập nhật câu lệnh SQL -> cập nhật API đúng  
+- Đoạn {} trong fetch là gì ?
+    1. Cấu hình request giúp thực hiện đúng yêu cầu Create/Delete/Post
+    2. headers cho biết kiểu dữ liệu gửi đi (application/json)
+    3. body cho biết dữ liệu muốn gửi lên server, thường ở dạng JSON nhận string
 
-    12. Cập nhật sản phẩm nếu chỉ nhập 1 trường thì không ảnh hưởng các fields khác
-    - Giải pháp Dynamic update
-      let fields = [];
-      let values = [];
-      let index = 1;
-      if (name !== undefined) {
-        fields.push(`name = $${index++}`);
-        values.push(name);
-      }
-      if (price !== undefined) {
-        fields.push(`price = $${index++}`);
-        values.push(price);
-      }
-      if (stock_quantity !== undefined) {
-        fields.push(`stock_quantity = $${index++}`);
-        values.push(stock_quantity);
-      }
+11. Sorting sản phẩm theo query parameter (SQL động)
+- Giao diện gọi API  /api/products?sortBy=name&order=asc
+-> Sửa model để cập nhật câu lệnh SQL -> cập nhật API đúng  
 
-      // Không có trường nào để update
-      if (fields.length === 0) return res.status(400).send("No fields to update");
+12. Cập nhật sản phẩm nếu chỉ nhập 1 trường thì không ảnh hưởng các fields khác
+- Giải pháp Dynamic update
+  let fields = [];
+  let values = [];
+  let index = 1;
+  if (name !== undefined) {
+    fields.push(`name = $${index++}`);
+    values.push(name);
+  }
+  if (price !== undefined) {
+    fields.push(`price = $${index++}`);
+    values.push(price);
+  }
+  if (stock_quantity !== undefined) {
+    fields.push(`stock_quantity = $${index++}`);
+    values.push(stock_quantity);
+  }
 
-      values.push(id); // ID là tham số cuối cùng
+  // Không có trường nào để update
+  if (fields.length === 0) return res.status(400).send("No fields to update");
 
-      const query = `UPDATE "productTable" SET ${fields.join(', ')} WHERE id = $${index}`;
-      const result = await con.query(query, values);
+  values.push(id); // ID là tham số cuối cùng
+
+  const query = `UPDATE "productTable" SET ${fields.join(', ')} WHERE id = $${index}`;
+  const result = await con.query(query, values);
 
 ## Cart: Nơi chứa sản phẩm sau khi khách hàng thêm vào, chứa thông tin cơ bản về sản phẩm
 sẽ được sync tương ứng trong database, quyền truy cập thuộc về khách hàng
-1. Cấu trúc thư mục chuẩn RESTful Backend
+### Cấu trúc thư mục chuẩn RESTful Backend
 ```sh
 myProject/
 ├── controllers/
@@ -366,9 +366,9 @@ myProject/
 └── README.md
 ```
 *File mẫu cho giỏ hàng (Cart)*
-### models/cartModel.js
 
-2. Tương tự Products ở những chức năng chính cơ bản (Mẫu)
+### Những chức năng chính cơ bản (Mẫu) 
+1. models/cartModel.js
 ```js
 const con = require('../db/connection');
 
@@ -394,7 +394,7 @@ const cartModel = {
 
 module.exports = cartModel;
 ```
-### controllers/cartController.js
+2. controllers/cartController.js
 ```js
 const cartModel = require('../models/cartModel');
 
@@ -427,7 +427,7 @@ exports.clearCart = async (req, res) => {
   res.json({ message: 'Cart cleared' });
 };
 ```
-### routes/cartRoutes.js
+3. routes/cartRoutes.js
 ```js
 const express = require('express');
 const router = express.Router();
@@ -441,7 +441,7 @@ router.delete('/', cartController.clearCart);
 
 module.exports = router;
 ```
-### server.js (Thêm route)
+4. server.js (Thêm route)
 ```js
 const express = require('express');
 const app = express();
@@ -457,25 +457,52 @@ app.use('/api/cart', cartRoutes); // 👈 Thêm route mới
 
 app.listen(3000, () => console.log('Server running on http://localhost:3000'));
 ```
-*Gợi ý thao tác CRUD từ client (HTML + JS)
-Thêm sản phẩm vào giỏ (POST /api/cart)
 
-Xem giỏ hàng (GET /api/cart)
+## Gợi ý thao tác CRUD từ client (HTML + JS)
+- Thêm sản phẩm vào giỏ (POST /api/cart)
+- Xem giỏ hàng (GET /api/cart)
+- Xóa từng sản phẩm khỏi giỏ
+- Cập nhật số lượng sản phẩm
+- Xóa toàn bộ giỏ hàng
+- Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương tự như phần product bạn đã làm.
 
-Xóa từng sản phẩm khỏi giỏ
-
-Cập nhật số lượng sản phẩm
-
-Xóa toàn bộ giỏ hàng
-
-Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương tự như phần product bạn đã làm.
-
+### Những thắc mắc và lưu ý kĩ thuật
+1. UNIQUE constraint unique_id trên bảng cartTable
+- Ý nghĩa: Ràng buộc UNIQUE (product_id) đảm bảo một sản phẩm chỉ xuất hiện một lần trong giỏ hàng (không tạo bản ghi mới cho cùng product_id và cùng user_id).
+- Lỗi thường gặp: Khi INSERT sản phẩm đã tồn tại trong giỏ → PostgreSQL báo:
+```SQL
+duplicate key value violates unique constraint "unique_id"
+```
+- Cách xử lý:
+* Cách 1: Ở backend, kiểm tra trước khi thêm:
+```js
+const existing = await con.query(
+    'SELECT * FROM "cartTable" WHERE product_id = $1 AND user_id = $2',
+    [product_id, user_id]
+);
+if (existing.rows.length > 0) {
+    // Update số lượng thay vì insert
+}
+```
+* Cách 2: Dùng ON CONFLICT trong PostgreSQL:
+```sql
+INSERT INTO "cartTable" (product_id, quantity, user_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (product_id) DO UPDATE
+SET quantity = "cartTable".quantity + EXCLUDED.quantity;
+```
 ## JWT và bảo mật (mã hóa mật khẩu bcrypt)
-
-
+### Mục đích
+- Xác thực người dùng khi truy cập API
+- Lưu trữ thông tin quan trọng để phân quyền mà không cần query DB liên tục 
+- Bảo vệ các route nhạy cảm liên quan đến người dùng
+### Cơ chế hoạt động trong dự án
+- Register sau khi đăng ký tài khoản, mật khẩu được hash bằng bcrypt trước khi lưu, role mặc định là user
+- Login sẽ kiểm tra username và mật khẩu bằng bcrypt.compare, nếu kết quả đúng sẽ trả về access token
+- middleware verifyToken: Lấy token trong request và giải mã để lấy userid và role sau đó phân quyền => một số quyền chỉ admin mới truy cập được
 
 ## *Note*:  
-1. Khi nào dùng hàm kiểu nào?
+### Khi nào dùng hàm kiểu nào?
 - Tình huống	Gợi ý dùng
 - Hàm thường, cần hoisting =>	function declaration
 - Hàm gán biến, closure =>	function expression
@@ -483,7 +510,7 @@ Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương
 - Chạy hàm ngay =>	IIFE
 - Định nghĩa method trong object/class =>	object method
 
-2. Mẹo tránh rối khi mở rộng dự án
+### Mẹo tránh rối khi mở rộng dự án
 | KỸ THUẬT                | GIẢI THÍCH                                                                 |
 |:-------------------------|:---------------------------------------------------------------------------|
 | Tách rõ module          | Mỗi module như product, cart, user nên có controller/model riêng, đừng viết chồng chéo. |
@@ -492,14 +519,37 @@ Mỗi hành động sẽ gắn với một hàm JavaScript dùng fetch() tương
 | Tạo middleware (sau này)| Nếu sau này có xác thực, user_id sẽ lấy từ middleware gán vào req.user.    |
 | Viết unit test (về sau) | Giúp test 1 phần riêng lẻ không bị ảnh hưởng toàn bộ app.                 |
 
-3. Sync database giữa cart và product
-a/ Add
+### Sync database giữa cart và product
+1. Add
 - Lấy thông tin từ product, kiểm tra số lượng có hay không hoặc khi thêm vào cart có quá số lượng
 - Sau đó cập nhật số lượng từ cả 2, nếu trong cart có sẵn thì cập nhật thêm, chưa thì sẽ insert
-b/ Update
+2. Update
 - Lấy số lượng từ giỏ đang có 
 - Kiểm tra người dùng muốn tăng hay giảm và tính toán phần chênh lệch (không vượt quá stock)
 - Cập nhật cart
-c/ Delete
+3. Delete
 - Lấy số lượng cần xóa
 - Trả lại kho và cập nhật
+
+### Các loại HTTP status code phổ biến
+1. 2xx - Thành công
+- 200: OK => Yêu cầu thành công (GET, PUT, DELETE)
+- 201: Created => Tạo thành công (POST)
+- 204: No Content => Thành công nhưng ko trả về data (DELETE, PUT)
+
+2. 3xx - Điều hướng
+- 301: Moved Permanently => URL đã chuyển vĩnh viễn
+- 302: Found => Chuyển trang (Login)
+- 304 Not modified => Dùng cache
+
+3. 4xx - Lỗi phía Client
+- 400: Bad request => Sai cú pháp req
+- 401: Unauthorized => Chưa đăng nhập
+- 403: Forbidden => Không có quyền truy cập
+- 404: Not Found => Không thấy (Sai URL)
+- 409: Conflict => Xung đột dữ liệu
+
+4. 5xx - Lỗi phía server
+- 500: Internal Server Error => Lỗi không xác định từ server (bug, crash)
+- 502: Bad Gateway => Gateway sai
+- 503: Service Unavailable => Server quá tải hoặc bảo trì

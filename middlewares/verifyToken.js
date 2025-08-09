@@ -13,7 +13,7 @@ exports.verifyToken = function (req, res, next) {
 
     jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
     if (err) {
-      return res.status(403).json({ msg: "Invalid token" });
+      return res.status(403).json({ msg: "Invalid token - you must login to interact" });
     }
     req.user = user; // lưu thông tin user vào req trước khi kiểm tra admin
 
