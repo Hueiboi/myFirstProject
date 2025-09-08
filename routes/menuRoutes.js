@@ -4,8 +4,8 @@ const productController = require('../controllers/productController.js');
 const {body,checkSchema} = require('express-validator');
 const {createProductSchema} = require('../utils/validationSchema.js');
 const {handleValidationErrors} = require('../middlewares/validate.js');
-const {verifyToken} = require('../middlewares/verifyToken');
-const {isAdmin} = require('../middlewares/isAdmin');
+const {verifyToken} = require('../middlewares/verifyToken.js');
+const {isAdmin} = require('../middlewares/isAdmin.js');
 
 router.get('/', productController.getAllProducts);
 router.get('/name', productController.getAllByName);

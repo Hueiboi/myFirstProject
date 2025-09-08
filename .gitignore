@@ -37,3 +37,5 @@ test/
 # Package lock files (nếu chỉ muốn dùng 1 loại lock file)
 # package-lock.json
 # yarn.lock
+
+generateToken.js
