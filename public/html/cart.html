@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cart</title>
+  <link rel="stylesheet" href="../css/output.css">
+  <link rel="stylesheet" href="../assets/fontawesome-free-6.7.2-web/css/all.min.css">
+</head>
+<body class="bg-gray-700 font-sans text-white">
+  <!-- Header -->
+  <header class="bg-gray-800 px-5 py-3 flex justify-between items-center">
+    <a href="#" class="text-lg font-bold">🛒 Simplicity Shop</a>
+
+    <ul class="flex space-x-4 gap-5 text-white">
+      <li class="relative group">
+        <a href="./home.html" class=" hover:text-green-600">Home</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+      <li class="relative group">
+        <a href="#" class="hover:text-green-600">Cart</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+      <li class="relative group">
+        <a href="./products.html" class="hover:text-green-600">Storage (only for ADMIN)</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+    </ul>
+
+    <div class="flex items-center space-x-2 bg-white rounded-md px-2 py-1">
+      <input type="text" id="filter" placeholder="Search product..."
+             class="px-3 py-1.5 rounded-md border-none focus:outline-none text-black">
+      <button onclick="searchProducts()"
+              class="px-3 py-1.5 bg-cyan-600 text-white rounded-md hover:bg-cyan-700">
+        Search
+      </button>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <a class="border rounded-full px-2 py-1 text-2xl">
+        <i class="fa-solid fa-user-tie"></i>
+      </a>
+      <a class="">Admin account</a>
+    </div>
+</header>
+
+<!-- Main  -->
+<main class="bg-gray-700 min-h-screen p-6" >
+  <h1 class="text-2xl font-bold mb-4">Your cart</h1>
+
+  <div class="space-y-4">
+    <!-- Sản phẩm -->
+    <div id="cartContainer">
+      
+    </div>
+
+    <!-- Tổng tiền -->
+    <div id="totalSum">
+
+    </div>
+    <!-- Nút thanh toán -->
+  </div>
+</main>
+
+</body>
+<script>
+  const carts = [
+    { id: 1, name: "Apple", price: 2.5, stock: 40, quantity: 5 },
+    { id: 2, name: "Orange", price: 3, stock: 25, quantity: 4 },
+    { id: 3, name: "Banana", price: 1.5, stock: 30, quantity: 3 },
+    { id: 4, name: "Grapes", price: 4, stock: 10, quantity: 2 },
+  ];
+
+  function calculateTotal(carts) {
+    const subtotal = carts.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const voucherEl = document.getElementById("voucher");
+    const discountPercent = voucherEl ? parseInt(voucherEl.value) : 0;
+
+    const discount = Math.floor(subtotal * discountPercent / 100);
+    const total = subtotal - discount;
+
+    return total.toLocaleString();
+  }
+
+  function decreaseQty(id) {
+    const product = carts.find(i => i.id === id);
+    if(product && product.quantity > 0) {
+      product.quantity--;
+      renderCart();
+    } else {
+      alert("You don't wanna buy it??");
+    }
+  }
+
+  function increaseQty(id) {
+    const product = carts.find(i => i.id === id);
+    if(product && product.quantity < product.stock) {
+      product.quantity++;
+      renderCart();
+    } else {
+      alert("Max stock reached cuzz!!");
+    }
+  }
+
+  function deleteItem(id) {
+    const index = carts.findIndex(i => i.id === id);
+    if(index !== -1) {
+      carts.splice(index, 1);
+      document.getElementById("cartContainer").innerHTML = "";
+      document.getElementById("totalSum").innerHTML = "";
+      renderCart();
+    }
+  }
+
+  function renderCart() {
+    const currCart = [...carts];
+    renderCartList(currCart);
+  }
+
+  function renderCartList(carts) {
+    const cartContainer = document.getElementById("cartContainer");
+    const totalSum = document.getElementById("totalSum");
+    cartContainer.innerHTML = "";
+    totalSum.innerHTML = "";
+    carts.forEach(item => {
+      const productDiv = document.createElement("div");
+      productDiv.className = "flex items-center border p-4 rounded-lg shadow-sm bg-white text-black";
+      productDiv.innerHTML = `
+      <img src="" alt="Product" class="w-20 h-20 object-cover rounded" />
+      <div class="ml-4 flex-1">
+        <h2 class="text-lg font-semibold">${item.name}</h2>
+        <p class="text-sm text-gray-500">Mô tả ngắn gọn</p>
+        <div class="mt-2 flex items-center space-x-2">
+          <span class="text-red-500 font-bold">${item.price}$</span>
+          <span class="text-gray-400">x ${item.quantity}</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="decreaseQty(${item.id})" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"> - </button>
+        <span>${item.quantity}</span>
+        <button onclick="increaseQty(${item.id})" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"> + </button>
+      </div>
+      <button onclick="deleteItem(${item.id})" class="ml-4 text-white px-3 py-2 bg-red-500 rounded hover:bg-red-600">Delete</button>
+    </div>
+      `;
+      cartContainer.appendChild(productDiv);
+    });
+          
+    const totalCart = document.createElement("div");
+    totalCart.className = "border-t pt-4 flex justify-between items-center";
+    totalCart.innerHTML = `
+    <span class="text-lg font-semibold">Summary:</span>
+    <div class="my-2">
+      <label for="voucher" class="text-sm">Select discount code:</label>
+      <select id="voucher" class="ml-2 px-2 py-1 border rounded bg-white text-black">
+        <option value="0">No discount</option>
+        <option value="5">5% off</option>
+        <option value="10">10% off</option>
+      </select>
+    </div>
+    <span class="text-xl font-bold text-green-600" id="totalText">${calculateTotal(carts)}$</span>
+
+    <div class="text-right mt-2">
+      <button class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Checkout
+      </button>
+    </div>
+    `;        
+    totalSum.appendChild(totalCart);
+
+    const voucherSelect = document.getElementById("voucher");
+    if (voucherSelect) {
+      voucherSelect.addEventListener("change", () => {
+        // Cập nhật lại tổng tiền khi chọn voucher mới
+        const totalText = document.getElementById("totalText");
+        totalText.textContent = `${calculateTotal(carts)}$`;
+      });
+    }
+
+  }
+
+  renderCart();
+  
+</script>
+</html>

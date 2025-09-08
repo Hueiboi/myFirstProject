@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Manager</title>
+  <link rel="stylesheet" href="../css/output.css" />
+  <link rel="stylesheet" href="../assets/fontawesome-free-6.7.2-web/css/all.min.css">
+</head>
+<body class="bg-gray-700 font-sans text-white">
+  <!-- Header -->
+  <header class="bg-gray-800 px-5 py-3 flex justify-between items-center">
+    <a href="#" class="text-lg font-bold">🛒 Simplicity Shop</a>
+
+    <ul class="flex space-x-4 gap-5 text-white">
+      <li class="relative group">
+        <a href="./home.html" class=" hover:text-green-600">Home</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+      <li class="relative group">
+        <a href="./cart.html" class="hover:text-green-600">Cart</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+      <li class="relative group">
+        <a href="#" class="hover:text-green-600">Storage (only for ADMIN)</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+    </ul>
+
+    <div class="flex items-center space-x-2 bg-white rounded-md px-2 py-1">
+      <input type="text" id="filter" placeholder="Search product..."
+             class="px-3 py-1.5 rounded-md border-none focus:outline-none text-black">
+      <button onclick="searchProducts()"
+              class="px-3 py-1.5 bg-cyan-600 text-white rounded-md hover:bg-cyan-700">
+        Search
+      </button>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <a class="border rounded-full px-2 py-1 text-2xl">
+        <i class="fa-solid fa-user-tie"></i>
+      </a>
+      <a class="">Admin account</a>
+    </div>
+  </header>
+
+   <!-- Main -->
+  <main class="gap-5 p-5">
+    <!-- Product Section -->
+    <section class="">
+      <h2 class="text-xl font-semibold mb-4">Products</h2>
+
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <label for="sort" class="text-lg">Sort by:</label>
+        <select id="sort" class="px-2 py-1 rounded-md text-black bg-white">
+          <option value="default">Default</option>
+          <option value="priceAsc">Price: Low to High</option>
+          <option value="priceDesc">Price: High to Low</option>
+          <option value="nameAsc">Name: A to Z</option>
+          <option value="nameDesc">Name: Z to A</option>
+        </select>
+        <button onclick="sortProducts()"
+                class="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-800 cursor-pointer">
+          <i class="fa-solid fa-arrow-down-a-z"></i>
+        </button>
+      </div>
+    </section>
+
+    <section class="rounded-md overflow-x-auto">
+      <table class="w-full table-auto border-collapse border border-gray-600 bg-gray-200 text-black">
+        <thead>
+          <tr >
+            <th class="px-4 py-4">Id</th>
+            <th class="px-4 py-4">Name</th>
+            <th class="px-4 py-4">Price</th>
+            <th class="px-4 py-4">Stock</th>
+            <th class="px-4 py-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody">
+          <!-- JS sẽ render sản phẩm tại đây -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="modalOverlay"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm justify-center items-center z-50 hidden">
+    <div class="bg-white text-black rounded-xl w-[90%] max-w-md shadow-2xl transform scale-100 transition duration-300 overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-br from-gray-700 to-gray-800 text-white p-5 text-center relative">
+        <div id="loginHeader">
+          <h2 class="text-2xl font-bold mb-2">Enter new information</h2>
+          <p class="text-sm opacity-90">Ensure all fields are filled out correctly.</p>
+        </div>
+
+        <button id="closeBtn"
+                class="absolute top-4 right-5 text-white text-2xl hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/30 pb-1.5 pl-0.5">
+          &times;
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="createProductForm" class="p-6 space-y-4">
+        <div>
+          <label for="productName" class="font-semibold mb-1 block">Product name</label>
+          <input type="text" id="productName" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-green-600">
+        </div>
+
+        <div>
+          <label for="productPrice" class="font-semibold mb-1 block">Price</label>
+          <input type="number" id="productPrice" min="0.01" step="0.01" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-green-600">
+        </div>
+
+        <div>
+          <label for="productStock" class="font-semibold mb-1 block">Stock</label>
+          <input type="number" id="productStock" min="0" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-green-600">
+        </div>
+      </form>
+
+
+      <!-- Modal Footer -->
+      <div class="text-center text-black p-5">
+        <div class="flex justify-end space-x-3 pt-4">
+          <button type="button" onclick="closeModal()"
+                  class="px-4 py-2 bg-gray-300 rounded hover:bg-red-500 hover:text-white cursor-pointer">Cancel</button>
+          <button type="submit" id="confirmBtn"
+                  class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer">Confirm</button>
+        </div>
+    </div>
+  </div>
+
+  <script>
+    const products = [
+    { id: 1, name: "Apple", price: 2.5, stock: 50 },
+    { id: 2, name: "Orange", price: 3, stock: 40 },
+    { id: 3, name: "Banana", price: 1.5, stock: 35 },
+    { id: 4, name: "Grapes", price: 4, stock: 20 },
+    { id: 5, name: "Mango", price: 3.5, stock: 30 },
+    { id: 6, name: "Pineapple", price: 5, stock: 15 },
+    { id: 7, name: "Coconut", price: 7, stock: 10 },
+    { id: 8, name: "Chili", price: 6, stock: 10 },
+    { id: 9, name: "Durian", price: 5.5, stock: 10 },
+    { id: 10, name: "Cherry", price: 6.5, stock: 10 }
+  ];
+
+  const modal = {
+    overlay: document.getElementById("modalOverlay"),
+    closeBtn: document.getElementById("closeBtn"),
+    form: document.getElementById("createProductForm"),
+    confirm: document.getElementById("confirmBtn")
+  }
+
+  function renderTable() {
+    currentList = [...products];
+    renderProductTable(currentList);
+  }
+
+  function renderProductTable(list) {
+    const tbody = document.getElementById("productTableBody");
+    tbody.innerHTML = ""; 
+
+    list.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.className = "text-center border-2 border-gray-300";
+      tr.innerHTML = `
+        <td class="px-6 py-4">${p.id}</td>
+        <td class="px-6 py-4">${p.name}</td>
+        <td class="px-6 py-4">${p.price}$</td>
+        <td class="px-6 py-4">${p.stock}</td>
+        <td>
+          <button onclick="editProduct(${p.id})" class="bg-blue-600 text-white rounded-md hover:bg-blue-800 px-2 py-2 mx-2 cursor-pointer">Edit</button>
+          <button onclick="if (confirm('Are you sure you want to delete this product?')) { deleteProduct(${p.id}); }" class="bg-red-600 text-white rounded-md hover:bg-red-800 px-2 py-2 mx-2 cursor-pointer">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+     const createRow = document.createElement("tr");
+    createRow.innerHTML = `
+      <td colspan="5" class="text-center py-2 ">
+        <button onclick="showCreateForm()" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 cursor-pointer">
+          + Create New Product
+        </button>
+      </td>
+    `;
+    tbody.appendChild(createRow);
+  }
+
+  function searchProducts() {
+    const keyword = document.getElementById("filter").value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(keyword));
+    currentProductList = filtered;
+    renderProductTable(currentProductList);
+  }
+
+  function sortProducts() {
+    const sortValue = document.getElementById("sort").value;
+    let sortedProducts = [...products];
+
+    if (sortValue === "priceAsc") {
+      sortedProducts.sort((a, b) => a.price - b.price);
+    } else if (sortValue === "priceDesc") {
+      sortedProducts.sort((a, b) => b.price - a.price);
+    } else if (sortValue === "nameAsc") {
+      sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortValue === "nameDesc") {
+      sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+    } else {
+      renderTable();
+      return;
+    }
+
+    renderProductTable(sortedProducts);
+  }
+  
+  function closeModal() {
+    modal.overlay.classList.remove("flex");
+    modal.overlay.classList.add("hidden");
+    modal.form.reset();
+  }
+  modal.closeBtn.addEventListener("click", closeModal);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeModal();
+    }
+    });
+  
+  function showCreateForm() {
+    modal.overlay.classList.remove("hidden");
+    modal.overlay.classList.add("flex");
+    modal.mode = "create";
+    modal.form.reset();
+  }
+
+  function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return alert("Product not found!");
+
+    modal.overlay.classList.remove("hidden");
+    modal.overlay.classList.add("flex");
+    modal.mode = "edit";
+    modal.productId = id;
+    document.getElementById("productName").value = product.name;
+    document.getElementById("productPrice").value = product.price;
+    document.getElementById("productStock").value = product.stock;
+  }
+
+  function deleteProduct(id) {
+    const index = products.findIndex(p => p.id === id);
+    if (index !== -1) {
+      products.splice(index, 1);
+      renderTable();
+    } else {
+      alert("Product not found!");
+    }
+  }
+
+  modal.confirm.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("productName").value;
+    const price = parseFloat(document.getElementById("productPrice").value);
+    const stock = parseInt(document.getElementById("productStock").value, 10);
+
+    if (!name || isNaN(price) || isNaN(stock)) {
+      alert("Vui lòng nhập đầy đủ và đúng định dạng.");
+      return;
+    }
+
+    if (modal.mode === "create") {
+      const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+      products.push({ id: newId, name, price, stock });
+    } else if (modal.mode === "edit") {
+      const product = products.find(p => p.id === modal.productId);
+      if (!product) return alert("Product not found!");
+
+      product.name = name;
+      product.price = price;
+      product.stock = stock;
+    }
+
+    renderTable();
+    closeModal();
+  });
+
+
+  renderTable();
+
+
+  </script>
+</body>
+</html>

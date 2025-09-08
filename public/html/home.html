@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Shop Home</title>
+  <link href="../css/output.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/fontawesome-free-6.7.2-web/css/all.min.css">
+</head>
+
+<body class="bg-gray-700 font-sans text-white">
+
+  <!-- Header -->
+  <header class="bg-gray-800 px-5 py-3 flex justify-between items-center">
+    <a href="#" class="text-lg font-bold">🛒 Simplicity Shop</a>
+
+    <ul class="flex space-x-4 gap-5 text-white">
+      <li class="relative group">
+        <a href="#" class=" hover:text-green-600">Home</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+      <li class="relative group">
+        <a href="./cart.html" class="hover:text-green-600">Cart</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+      <li class="relative group">
+        <a href="./products.html" class="hover:text-green-600">Storage (only for ADMIN)</a>
+        <span class="absolute left-0 bottom-0 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+      </li>
+    </ul>
+
+    <div class="flex items-center space-x-2 bg-white rounded-md px-2 py-1">
+      <input type="text" id="filter" placeholder="Search product..."
+             class="px-3 py-1.5 rounded-md border-none focus:outline-none text-black">
+      <button onclick="searchProducts()"
+              class="px-3 py-1.5 bg-cyan-600 text-white rounded-md hover:bg-cyan-700">
+        Search
+      </button>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <button id="loginBtn"
+              class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700">
+        Login
+      </button>
+      <button id="regisBtn"
+              class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700">
+        Register
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="grid grid-cols-1 md:grid-cols-3 gap-5 p-5">
+    <!-- Product Section -->
+    <section class="md:col-span-2">
+      <h2 class="text-xl font-semibold mb-4">Home</h2>
+
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <label for="sort" class="text-lg">Sort by:</label>
+        <select id="sort" class="px-2 py-1 rounded-md text-black bg-white">
+          <option value="default">Default</option>
+          <option value="priceAsc">Price: Low to High</option>
+          <option value="priceDesc">Price: High to Low</option>
+          <option value="nameAsc">Name: A to Z</option>
+          <option value="nameDesc">Name: Z to A</option>
+        </select>
+        <button onclick="sortProducts()"
+                class="px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-800">
+          <i class="fa-solid fa-arrow-down-a-z"></i>
+        </button>
+      </div>
+
+      <div id="productList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- JS sẽ render sản phẩm tại đây -->
+      </div>
+    </section>
+
+    <!-- Cart Section -->
+    <aside class="md:col-span-1 bg-white text-black p-5 rounded-lg shadow flex flex-col max-h-[400px]">
+      <div class="flex-1 overflow-y-auto">
+        <h2 class="text-xl font-semibold mb-2">Preview Cart</h2>
+        <p class="cart-section__qty"></p>
+        <div id="cartItems" class="divide-y divide-gray-200">
+          <!-- JS render giỏ hàng -->
+        </div>
+      </div>
+      
+      <div>
+        <div id="cartTotal" class="text-right font-bold mt-4">Total: $0</div>
+        <button class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-800">
+          Go to cart & checkout
+        </button>
+      </div>
+      
+    </aside>
+  </main>
+  
+  <!-- Modal -->
+  <div id="modalOverlay"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden justify-center items-center z-50">
+    <div class="bg-white text-black rounded-xl w-[90%] max-w-md shadow-2xl transform scale-100 transition duration-300 overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-br from-gray-700 to-gray-800 text-white p-5 text-center relative">
+        <div id="loginHeader">
+          <h2 class="text-2xl font-bold mb-2"><span class="text-green-500">Log</span>in</h2>
+          <p class="text-sm opacity-90">Welcome back to our store!</p>
+        </div>
+
+        <div id="regisHeader" class="hidden">
+          <h2 class="text-2xl font-bold mb-2">Register</h2>
+          <p class="text-sm opacity-90">Create an account to <span class="text-green-500">get more offers</span> from our store!</p>
+        </div>
+
+        <button id="closeBtn"
+                class="absolute top-4 right-5 text-white text-2xl hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/30 pb-1.5 pl-0.5">
+          &times;
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="authForm" class="p-6 space-y-4">
+        <div id="nameGroup" class="hidden">
+          <label for="name" class="font-semibold mb-1 block">Your name</label>
+          <input type="text" id="name" placeholder="Nhập họ và tên của bạn"
+                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:border-gray-800">
+        </div>
+
+        <div>
+          <label for="email" class="font-semibold mb-1 block">Email</label>
+          <input type="email" id="email" placeholder="Nhập email của bạn" required
+                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:border-gray-800">
+        </div>
+
+        <div>
+          <label for="password" class="font-semibold mb-1 block">Password</label>
+          <input type="password" id="password" placeholder="Nhập mật khẩu" required
+                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:border-gray-800">
+        </div>
+
+        <div id="confirmPasswordGroup" class="hidden">
+          <label for="confirmPassword" class="font-semibold mb-1 block">Confirm password</label>
+          <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu"
+                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:border-gray-800">
+        </div>
+
+        <button type="submit" id="submitLoginBtn"
+                class="w-full px-4 py-3 text-white bg-gradient-to-r from-gray-700 to-gray-800 rounded-md hover:from-green-600 hover:to-green-800 transition">
+          Sign in
+        </button>
+
+        <button type="submit" id="submitRegisBtn"
+                class="w-full px-4 py-3 text-white bg-gradient-to-r from-gray-700 to-gray-800 rounded-md hidden hover:from-green-600 hover:to-green-800 transition">
+          Sign up
+        </button>
+      </form>
+
+      <!-- Modal Footer -->
+      <div class="text-center text-black p-5">
+        <div id="loginFooter">
+          <span>Don't have an account?</span>
+          <a href="#" id="showRegisterLink" class="text-green-600 font-semibold hover:underline">Sign up now</a>
+        </div>
+        <div id="regisFooter" class="hidden">
+          <span>Already have an account?</span>
+          <a href="#" id="showLoginLink" class="text-green-600 font-semibold hover:underline">Sign in now</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  const products = [
+    { id: 1, name: "Apple", price: 2.5, stock: 50 },
+    { id: 2, name: "Orange", price: 3, stock: 40 },
+    { id: 3, name: "Banana", price: 1.5, stock: 35 },
+    { id: 4, name: "Grapes", price: 4, stock: 20 },
+    { id: 5, name: "Mango", price: 3.5, stock: 30 },
+    { id: 6, name: "Pineapple", price: 5, stock: 15 },
+    { id: 7, name: "Coconut", price: 7, stock: 10 },
+    { id: 8, name: "Chili", price: 6, stock: 20 },
+    { id: 9, name: "Durian", price: 5.5, stock: 30 },
+    { id: 10, name: "Cherry", price: 6.5, stock: 25 }
+  ];
+
+  const cart = [];
+  let currentProductList = [...products];
+
+  function renderProducts() {
+    currentProductList = [...products];
+    renderProductList(currentProductList);
+  }
+
+  function renderProductList(list) {
+    const container = document.getElementById("productList");
+    container.innerHTML = "";
+
+    list.forEach(p => {
+      const remaining = getRemainingStock(p.id);
+      const card = document.createElement("div");
+      card.className = "bg-white p-3 rounded-md shadow flex flex-col justify-between";
+
+      const name = document.createElement("h3");
+      name.className = "text-base font-semibold text-black mb-1";
+      name.textContent = p.name;
+
+      const price = document.createElement("p");
+      price.className = "text-sm text-gray-600 mb-1";
+      price.textContent = `Price: $${p.price}`;
+
+      const stock = document.createElement("p");
+      stock.className = "text-sm text-gray-600 mb-2";
+      stock.textContent = `Stock: ${remaining}`;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = remaining > 0 ? "Add to Cart" : "Out of Stock";
+      button.disabled = remaining <= 0;
+      button.className = remaining <= 0
+        ? "bg-gray-300 text-gray-600 px-3 py-1 rounded cursor-not-allowed"
+        : "bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700";
+
+      button.addEventListener("click", () => {
+        addToCart(p.id);
+        renderProducts();
+      });
+
+      const qtyBox = document.createElement("div");
+      qtyBox.className = "flex items-center space-x-2 mt-2 mb-2";
+
+      const minusBtn = document.createElement("button");
+      minusBtn.textContent = "-";
+      minusBtn.className = "bg-blue-600 hover:bg-blue-700 text-gray-600 px-3 py-[0.5] rounded text-white";
+
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "1";
+      input.max = remaining.toString();
+      input.value = "1";
+      input.id = `qty-${p.id}`;
+      input.className = "border border-gray-300 rounded w-12 text-center text-black ";
+      //Lắng nghe sự kiện nhập, nếu số lượng > tồn kho -> set max remaining
+      input.addEventListener("input", () => {
+      let val = parseInt(input.value);
+        if (val > remaining) {
+          input.value = remaining;
+          showWarning(`Số lượng vượt quá tồn kho. Đã tự động chỉnh về ${remaining}.`);
+        } else {
+          clearWarning();
+        }
+      });
+
+
+      const plusBtn = document.createElement("button");
+      plusBtn.textContent = "+";
+      plusBtn.className = "bg-blue-600 hover:bg-blue-700 text-gray-600 px-2 py-[0.5] rounded text-white";
+
+      // Gắn sự kiện
+      minusBtn.addEventListener("click", () => {
+        let val = parseInt(input.value);
+        if (val > 1) input.value = val - 1;
+      });
+
+      plusBtn.addEventListener("click", () => {
+        let val = parseInt(input.value);
+        if (val < remaining) input.value = val + 1;
+      });
+
+      // Gắn vào qtyBox
+      qtyBox.appendChild(minusBtn);
+      qtyBox.appendChild(input);
+      qtyBox.appendChild(plusBtn);
+
+
+      card.appendChild(name);
+      card.appendChild(price);
+      card.appendChild(stock);
+      card.appendChild(qtyBox);
+      card.appendChild(button);
+      container.appendChild(card);
+    });
+  }
+
+  function addToCart(id) {
+    const remaining = getRemainingStock(id);
+    if (remaining === 0) {
+      alert("Out of stock!");
+      return;
+    }
+
+    const qtyInput = document.getElementById(`qty-${id}`);
+    const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
+
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    const existing = cart.find(item => item.id === id);
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      cart.push({ ...product, quantity: quantity });
+    }
+
+    renderCart();
+    renderProductList(currentProductList);
+  }
+
+  function getRemainingStock(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return 0;
+
+    const cartItem = cart.find(item => item.id === id);
+    const inCart = cartItem ? cartItem.quantity : 0;
+
+    return product.stock - inCart;
+  }
+
+  function removeFromCart(id) {
+    const index = cart.findIndex(item => item.id === id);
+    if (index !== -1) {
+      cart.splice(index, 1);
+      renderCart();
+      renderProductList(currentProductList);
+    }
+  }
+
+  function renderCart() {
+    const container = document.getElementById("cartItems");
+    container.innerHTML = "";
+    cart.forEach(item => {
+      container.innerHTML += `
+        <div class="flex justify-between py-1 border-b border-gray-200">
+          <span>${item.name}</span>
+          <span>$${item.price} x ${item.quantity}</span>
+          <span>$${item.price * item.quantity}</span>
+          <button class="text-red-500 hover:text-red-600 cursor-pointer" onclick="removeFromCart(${item.id})">Remove</button>
+        </div>
+      `;
+    });
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    document.getElementById("cartTotal").innerText = `Total: $${total}`;
+  }
+
+  function searchProducts() {
+    const keyword = document.getElementById("filter").value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(keyword));
+    currentProductList = filtered;
+    renderProductList(currentProductList);
+  }
+
+  function sortProducts() {
+    const sortValue = document.getElementById("sort").value;
+    let sortedProducts = [...products];
+
+    if (sortValue === "priceAsc") {
+      sortedProducts.sort((a, b) => a.price - b.price);
+    } else if (sortValue === "priceDesc") {
+      sortedProducts.sort((a, b) => b.price - a.price);
+    } else if (sortValue === "nameAsc") {
+      sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortValue === "nameDesc") {
+      sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+    } else {
+      renderProducts();
+      return;
+    }
+
+    currentProductList = sortedProducts;
+    renderProductList(currentProductList);
+  }
+
+  // Modal logic
+  const modal = {
+    overlay: document.getElementById("modalOverlay"),
+    loginHeader: document.getElementById("loginHeader"),
+    regisHeader: document.getElementById("regisHeader"),
+    loginFooter: document.getElementById("loginFooter"),
+    regisFooter: document.getElementById("regisFooter"),
+    authForm: document.getElementById("authForm"),
+    nameGroup: document.getElementById("nameGroup"),
+    confirmPasswordGroup: document.getElementById("confirmPasswordGroup"),
+    loginBtn: document.getElementById("loginBtn"),
+    regisBtn: document.getElementById("regisBtn"),
+    closeBtn: document.getElementById("closeBtn"),
+    submitLoginBtn: document.getElementById("submitLoginBtn"),
+    submitRegisBtn: document.getElementById("submitRegisBtn"),
+    showLoginLink: document.getElementById("showLoginLink"),
+    showRegisterLink: document.getElementById("showRegisterLink")
+  };
+
+  let currentMode = "login";
+
+  function openModal(mode) {
+    currentMode = mode;
+    modal.overlay.classList.remove("hidden");
+    modal.overlay.classList.add("flex");
+
+    if (mode === "login") {
+      showLoginMode();
+    } else {
+      showRegisMode();
+    }
+  }
+
+  function closeModal() {
+    modal.overlay.classList.add("hidden");
+    modal.overlay.classList.remove("flex");
+    modal.authForm.reset();
+  }
+
+  function showLoginMode() {
+    currentMode = "login";
+    modal.loginHeader.classList.remove("hidden");
+    modal.loginFooter.classList.remove("hidden");
+    modal.submitLoginBtn.classList.remove("hidden");
+
+    modal.regisHeader.classList.add("hidden");
+    modal.regisFooter.classList.add("hidden");
+    modal.submitRegisBtn.classList.add("hidden");
+    modal.nameGroup.classList.add("hidden");
+    modal.confirmPasswordGroup.classList.add("hidden");
+  }
+
+  function showRegisMode() {
+    currentMode = "register";
+    modal.loginHeader.classList.add("hidden");
+    modal.loginFooter.classList.add("hidden");
+    modal.submitLoginBtn.classList.add("hidden");
+
+    modal.regisHeader.classList.remove("hidden");
+    modal.regisFooter.classList.remove("hidden");
+    modal.submitRegisBtn.classList.remove("hidden");
+    modal.nameGroup.classList.remove("hidden");
+    modal.confirmPasswordGroup.classList.remove("hidden");
+  }
+
+  modal.loginBtn.addEventListener("click", () => openModal("login"));
+  modal.regisBtn.addEventListener("click", () => openModal("register"));
+  modal.closeBtn.addEventListener("click", closeModal);
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && modal.overlay.classList.contains("flex")) {
+      e.preventDefault();
+      closeModal();
+    }
+  });
+
+  modal.showLoginLink.addEventListener("click", e => {
+    e.preventDefault();
+    showLoginMode();
+  });
+
+  modal.showRegisterLink.addEventListener("click", e => {
+    e.preventDefault();
+    showRegisMode();
+  });
+
+  renderProducts();
+</script>
+</html>
