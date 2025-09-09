@@ -1,32 +1,32 @@
 const { body } = require('express-validator');
 
 const createMenuSchema = {
-    name: {
-        isString: true,
-        isLength: { options: { min: 5, max: 32 } },
-        trim: true,
-        errorMessage: 'Name must be a string between 5 and 32 characters'
-    },
-    id: {
-        isInt: { options: { min: 1 } },
-        toInt: true,
-        errorMessage: 'ID must be a positive integer'
-    },
-    price: {
-        isFloat: { options: { min: 0 } },
-        toFloat: true,
-        errorMessage: 'Price must be a positive number'
-    },
-    stock_quantity: {
-        isInt: { options: { min: 0 } },
-        toInt: true,
-        errorMessage: 'Stock quantity must be a non-negative integer'
-    },
-    category: {
-        isString: true,
-        optional: true,
-        errorMessage: 'Category must be a string'
-    }
+  'products.*.name': {
+    isString: true,
+    isLength: { options: { min: 5, max: 32 } },
+    trim: true,
+    errorMessage: 'Name must be a string between 5 and 32 characters'
+  },
+  'products.*.id': {
+    isInt: { options: { min: 1 } },
+    toInt: true,
+    errorMessage: 'ID must be a positive integer'
+  },
+  'products.*.price': {
+    isFloat: { options: { min: 0 } },
+    toFloat: true,
+    errorMessage: 'Price must be a positive number'
+  },
+  'products.*.stock_quantity': {
+    isInt: { options: { min: 0 } },
+    toInt: true,
+    errorMessage: 'Stock quantity must be a non-negative integer'
+  },
+  'products.*.category': {
+    isString: true,
+    optional: true,
+    errorMessage: 'Category must be a string'
+  }
 };
 
 const createOrderSchema = {

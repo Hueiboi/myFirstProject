@@ -1,109 +1,96 @@
 const con = require('../config/db');
 
-const cartModel = {
-    getAll: (user_id) => con.query(
-    `SELECT c.product_id, p.name, p.price, c.quantity, 
-    (p.price * c.quantity) as total_price,
-    to_char(c.created_at, 'dd/MM/yy HH24:mm:ss') as created_at
-    FROM "cartTable" c
-    JOIN "productTable" p ON c.product_id = p.id
-    WHERE c.user_id = $1`,
-    [user_id] //Lấy thông tin sản phẩm theo id của từng user theo 2 bảng
+const orderModel = {
+    getAll: (user_id, date) => {
+        let query = 'SELECT * FROM orders WHERE user_id = $1';
+        const params = [user_id];
+        if (date) {
+            query += ' AND DATE(created_at) = $2';
+            params.push(date);
+        }
+        return con.query(query, params);
+    },
+
+    getById: (id, user_id) => con.query(
+        'SELECT o.*, oi.menu_id, oi.quantity, oi.price FROM orders o ' +
+        'LEFT JOIN order_items oi ON o.id = oi.order_id WHERE o.id = $1 AND o.user_id = $2',
+        [id, user_id]
     ),
 
-    //Sync số lượng trực tiếp từ kho và cart => giảm kho, tăng cart
-    add: async (product_id, quantity, user_id) => {
-        //Kiểm tra số lượng trong kho
-        const checkStock = await con.query(
-            'select * from "productTable" where id = $1', [product_id]
-        );
-        //TH1: không có sản phẩm
-        if(checkStock.rows.length === 0) {
-            throw new Error("Product not found!");
-        }
-        //TH2: Sản phẩm quá so với còn lại
-        const stock = checkStock.rows[0].stock_quantity;
-        if(stock < quantity) throw new Error("Not enough stock!");
+    create: (user_id, table_id, promotion_id) => con.query(
+        'INSERT INTO orders (user_id, table_id, total_amount, status, promotion_id, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING *',
+        [user_id, table_id, 0, 'pending', promotion_id]
+    ),
 
-        //Update kho => Giảm số lượng
+    addItem: async (order_id, menu_id, quantity) => {
+        const menu = await con.query('SELECT price, stock_quantity FROM menu WHERE id = $1', [menu_id]);
+        if (menu.rows.length === 0) throw new Error("Menu item not found");
+        const price = menu.rows[0].price;
+        const stock = menu.rows[0].stock_quantity;
+        if (stock < quantity) throw new Error("Not enough stock");
+
+        await con.query('UPDATE menu SET stock_quantity = stock_quantity - $1 WHERE id = $2', [quantity, menu_id]);
+        const result = await con.query(
+            'INSERT INTO order_items (order_id, menu_id, quantity, price, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *',
+            [order_id, menu_id, quantity, price]
+        );
+
         await con.query(
-            'update "productTable" set stock_quantity = stock_quantity - $1 where id = $2',
-            [quantity, product_id]
+            'UPDATE orders SET total_amount = total_amount + $1 WHERE id = $2',
+            [price * quantity, order_id]
         );
-
-        //Update cart => Tăng số lượng
-        const existing = await con.query('select * from "cartTable" where product_id = $1 and user_id = $2', [product_id, user_id]);
-
-        let result;
-        if(existing.rows.length > 0) {
-            result = await con.query('update "cartTable" set quantity = quantity + $1 where product_id = $2 and user_id = $3', [quantity, product_id, user_id]);
-        } else {
-            result = await con.query(
-                'insert into "cartTable" (product_id, quantity, user_id) values ($1, $2, $3)',
-                [product_id, quantity, user_id]
-            )
-        }
         return result;
     },
 
-    update: async (product_id, quantity, user_id) => {
-        //Lấy số lượng giỏ hiện tại
-        const result = await con.query('select quantity from "cartTable" where product_id = $1 and user_id = $2',[product_id, user_id])
-        const stockQty = await con.query('select stock_quantity from "productTable" where id = $1', [product_id]);
-
-        if(result.rows.length === 0) return {rowCount: 0};
-
-        const oldQty = result.rows[0].quantity;
-        const stock = stockQty.rows[0].stock_quantity;
+    updateItem: async (item_id, quantity) => {
+        const item = await con.query('SELECT quantity, menu_id, price, order_id FROM order_items WHERE id = $1', [item_id]);
+        if (item.rows.length === 0) throw new Error("Item not found");
+        const oldQty = item.rows[0].quantity;
+        const menu_id = item.rows[0].menu_id;
+        const price = item.rows[0].price;
+        const order_id = item.rows[0].order_id;
         const diff = quantity - oldQty;
-        //Kiểm tra stock nếu là tăng số lượng => không vượt quá stock
-        if(diff > stock) throw new Error("Not enough stock!");
-        //Tính toán phần chênh lệch => tăng hay giảm phụ thuộc vào diff và cập nhật stock trong product
-        if(diff > 0){
-            await con.query(
-                'update "productTable" set stock_quantity = stock_quantity - $1 where id = $2',
-                [diff, product_id]
-            )
-        }
-        else if(diff < 0) {
-            await con.query(
-                'update "productTable" set stock_quantity = stock_quantity + $1 where id = $2',
-                [-diff, product_id]
-            )
-        }
-        else {
-            return;
-        }
-       
-        //Cập nhật cart
-        return await con.query(
-            'update "cartTable" set quantity = quantity + $1 where product_id = $2 and user_id = $3',
-            [diff, product_id, user_id]
-        )
-    },
 
-    delete: async (product_id, user_id) => {
-        //Lấy số lượng cần xóa
+        const stock = await con.query('SELECT stock_quantity FROM menu WHERE id = $1', [menu_id]);
+        if (diff > stock.rows[0].stock_quantity) throw new Error("Not enough stock");
+
+        await con.query('UPDATE menu SET stock_quantity = stock_quantity - $1 WHERE id = $2', [diff, menu_id]);
         const result = await con.query(
-            'select quantity from "cartTable" where product_id = $1 and user_id = $2',
-            [product_id, user_id]
-        )
+            'UPDATE order_items SET quantity = $1 WHERE id = $2 RETURNING *',
+            [quantity, item_id]
+        );
 
-        if(result.rows.length === 0) return {rowCount: 0};
-
-        const qty = result.rows[0].quantity;
-
-        //Trả lại kho
         await con.query(
-            'update "productTable" set stock_quantity = stock_quantity + $1 where id = $2',
-            [qty, product_id]
-        )
-
-        //Xóa khỏi cart
-        return await con.query('delete from "cartTable" where product_id = $1 and user_id = $2', [product_id, user_id]);
+            'UPDATE orders SET total_amount = total_amount + $1 WHERE id = $2',
+            [price * diff, order_id]
+        );
+        return result;
     },
 
-    clear: (user_id) => con.query('delete from "cartTable" where user_id = $1', [user_id])
-}
+    deleteItem: async (item_id) => {
+        const item = await con.query('SELECT quantity, menu_id, price, order_id FROM order_items WHERE id = $1', [item_id]);
+        if (item.rows.length === 0) throw new Error("Item not found");
+        const qty = item.rows[0].quantity;
+        const menu_id = item.rows[0].menu_id;
+        const price = item.rows[0].price;
+        const order_id = item.rows[0].order_id;
 
-module.exports = cartModel;
+        await con.query('UPDATE menu SET stock_quantity = stock_quantity + $1 WHERE id = $2', [qty, menu_id]);
+        const result = await con.query('DELETE FROM order_items WHERE id = $1 RETURNING *', [item_id]);
+
+        await con.query(
+            'UPDATE orders SET total_amount = total_amount - $1 WHERE id = $2',
+            [price * qty, order_id]
+        );
+        return result;
+    },
+
+    pay: (order_id, method, amount) => con.query(
+        'INSERT INTO payments (order_id, method, amount, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+        [order_id, method, amount]
+    ),
+
+    updateStatus: (id, status) => con.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id])
+};
+
+module.exports = orderModel;

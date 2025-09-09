@@ -1,115 +1,118 @@
+const orderModel = require('../models/orderModel');
 const con = require('../config/db');
-const cartModel = require('../models/cartModel');
 
-exports.getCart = async (req, res) => {
+exports.getOrders = async (req, res) => {
     try {
-        console.log("Token Decoded: ", req.user);
-
         const user_id = req.user.user_id;
-
-        if(!user_id) {
-            return res.status(400).json({status: "error", msg: "user id not found"});
-        }
-
-        const result = await cartModel.getAll(user_id);
-        res.json({data: result.rows});
-    }
-    catch(err){
-        res.status(500).json({
-            message: "Can not retrieve data!",
-            error: err.message
-        });
+        const { date } = req.query;
+        const result = await orderModel.getAll(user_id, date);
+        res.status(200).json({ status: "success", data: result.rows, msg: "Orders retrieved successfully" });
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error retrieving orders", error: err.message });
         console.error(err);
     }
-}
+};
 
-exports.addCart = async (req, res) => {
+exports.getOrderById = async (req, res) => {
     try {
-        const {product_id, quantity} = req.body;
+        const id = req.params.id;
         const user_id = req.user.user_id;
-        // Không nên sử dụng user req.body vì người dùng có thể giả mạo để thêm vào giỏ người khác
-        //Nếu ID không tồn tại trong bảng product thì không thể thêm vào cart
-        //ID trong cart đối chiếu cho product với foreign key
-        const checkProduct = await con.query('Select * from "productTable" where id = $1',[product_id]);
-        if(checkProduct.rowCount === 0) {
-            return res.status(400).send("ID not exist!");
+        const result = await orderModel.getById(id, user_id);
+        if (result.rowCount > 0) {
+            res.status(200).json({ status: "success", data: result.rows, msg: "Order retrieved successfully" });
+        } else {
+            res.status(404).json({ status: "error", msg: "Order not found" });
         }
-
-        if(!product_id || !quantity || !user_id) {
-            return res.status(400).json({status: "error",msg: "Missing product_id, quantity or user_id"});
-        }
-
-        const result = await cartModel.add(product_id, quantity, user_id);
-        res.status(201).json({status: "success", msg: "Add successfully", data: result.rows[0]});
-
-    }
-    catch(err){
-         res.status(500).json({msg: "Can not add to cart!", error: err.message});
-    }
-}
-
-exports.updateCart = async (req, res) => {
-    try {
-        //Không phải {id} = req.params.id vì khi chọn id thì nó đã là string
-        //Nếu muốn destructure => {id} = req.params
-        const {product_id} = req.params;
-        const {quantity, user_id}= req.body;
-
-        if(!product_id || !quantity || !user_id) {
-            return res.status(400).send("Missing product_id, quantity or user_id")
-        }
-
-        const result = await cartModel.update(product_id, quantity, user_id);
-        res.status(200).send("Update successfully");
-    }
-    catch(err){
-         res.status(500).json({
-            message: "Can not update cart!",
-            error: err.message
-        });
-    }
-}
-
-exports.deleteCart = async (req, res) => {
-    try {
-        const {user_id} = req.body
-        const {product_id} = req.params;
-
-        if(!product_id || !user_id) {
-            return res.status(400).json({status: "error", msg: "Missing product_id or user_id"})
-        }
-
-        const result = await cartModel.delete(product_id, user_id);
-        if(result.rowCount > 0) {
-            res.status(200).json({msg: "Delete successfully"});
-        }
-        else {
-            res.status(404).json({msg: "Can not find items"});
-        }
-
-    }
-    catch(err){
-         res.status(500).json({msg: "Can not delete item!", error: err.message});
-    }
-}
-
-exports.clearCart = async (req, res) => {
-    try {
-        const {user_id} = req.body
-
-        if(!user_id) {
-            return res.status(400).send("Missing user_id")
-        }
-        const result = await cartModel.clear(user_id);
-        if(result.rowCount > 0) {
-            res.status(200).json({msg: "Clear successfully"});
-        }
-        else {
-            res.status(404).json({msg: "Can not find items"});
-        }
-    }
-    catch(err){
-        res.status(500).json({msg: "Can not clear data!",error: err.message});
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error retrieving order", error: err.message });
         console.error(err);
     }
-}
+};
+
+exports.createOrder = async (req, res) => {
+    try {
+        const user_id = req.user.user_id;
+        const { table_id, promotion_id } = req.body;
+        if (!table_id) return res.status(400).json({ status: "error", msg: "Missing table ID" });
+        const table = await con.query('SELECT status FROM tables WHERE id = $1', [table_id]);
+        if (table.rows.length === 0 || table.rows[0].status !== 'available') {
+            return res.status(400).json({ status: "error", msg: "Table not available" });
+        }
+        const result = await orderModel.create(user_id, table_id, promotion_id);
+        await con.query('UPDATE tables SET status = $1 WHERE id = $2', ['occupied', table_id]);
+        res.status(201).json({ status: "success", msg: "Order created successfully", data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error creating order", error: err.message });
+        console.error(err);
+    }
+};
+
+exports.addItemToOrder = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { menu_id, quantity } = req.body;
+        if (!menu_id || !quantity) return res.status(400).json({ status: "error", msg: "Missing menu ID or quantity" });
+        const order = await con.query('SELECT status FROM orders WHERE id = $1', [id]);
+        if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
+            return res.status(400).json({ status: "error", msg: "Order not pending" });
+        }
+        const result = await orderModel.addItem(id, menu_id, quantity);
+        res.status(201).json({ status: "success", msg: "Item added to order", data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error adding item", error: err.message });
+        console.error(err);
+    }
+};
+
+exports.updateItemInOrder = async (req, res) => {
+    try {
+        const { id, item_id } = req.params;
+        const { quantity } = req.body;
+        if (!quantity) return res.status(400).json({ status: "error", msg: "Missing quantity" });
+        const order = await con.query('SELECT status FROM orders WHERE id = $1', [id]);
+        if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
+            return res.status(400).json({ status: "error", msg: "Order not pending" });
+        }
+        const result = await orderModel.updateItem(item_id, quantity);
+        if (result.rowCount === 0) return res.status(404).json({ status: "error", msg: "Item not found" });
+        res.status(200).json({ status: "success", msg: "Item updated successfully" });
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error updating item", error: err.message });
+        console.error(err);
+    }
+};
+
+exports.deleteItemFromOrder = async (req, res) => {
+    try {
+        const { id, item_id } = req.params;
+        const order = await con.query('SELECT status FROM orders WHERE id = $1', [id]);
+        if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
+            return res.status(400).json({ status: "error", msg: "Order not pending" });
+        }
+        const result = await orderModel.deleteItem(item_id);
+        if (result.rowCount === 0) return res.status(404).json({ status: "error", msg: "Item not found" });
+        res.status(200).json({ status: "success", msg: "Item deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error deleting item", error: err.message });
+        console.error(err);
+    }
+};
+
+exports.payOrder = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { method } = req.body;
+        if (!method) return res.status(400).json({ status: "error", msg: "Missing payment method" });
+        const order = await con.query('SELECT total_amount, table_id FROM orders WHERE id = $1', [id]);
+        if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
+            return res.status(400).json({ status: "error", msg: "Order not pending" });
+        }
+        await orderModel.pay(id, method, order.rows[0].total_amount);
+        await orderModel.updateStatus(id, 'completed');
+        await con.query('UPDATE tables SET status = $1 WHERE id = $2', ['available', order.rows[0].table_id]);
+        res.status(200).json({ status: "success", msg: "Payment successful" });
+    } catch (err) {
+        res.status(500).json({ status: "error", msg: "Error processing payment", error: err.message });
+        console.error(err);
+    }
+};

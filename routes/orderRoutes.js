@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const cartController = require('../controllers/cartController')
-const {checkSchema} = require('express-validator')
-const {addCartSchema, updateCartSchema} = require('../utils/validationSchema')
-const {handleValidationErrors} = require('../middlewares/validate');
-const {verifyToken} = require('../middlewares/verifyToken');
+const orderController = require('../controllers/orderController');
+const { checkSchema } = require('express-validator');
+const { handleValidationErrors } = require('../middlewares/validate');
+const { verifyToken } = require('../middlewares/verifyToken');
+const { createOrderSchema, addItemToOrderSchema, updateItemInOrderSchema, payOrderSchema } = require('../utils/validationSchema');
 
-router.get('/',verifyToken ,cartController.getCart);
-router.post('/', verifyToken, checkSchema(addCartSchema), handleValidationErrors, cartController.addCart);
-router.put('/:product_id', verifyToken, checkSchema(updateCartSchema), handleValidationErrors,cartController.updateCart);
-router.delete('/:product_id', verifyToken ,cartController.deleteCart);
-router.delete('/',verifyToken ,cartController.clearCart);
+router.get('/', verifyToken, orderController.getOrders);
+router.get('/:id', verifyToken, orderController.getOrderById);
+router.post('/', verifyToken, checkSchema(createOrderSchema), handleValidationErrors, orderController.createOrder);
+router.post('/:id/items', verifyToken, checkSchema(addItemToOrderSchema), handleValidationErrors, orderController.addItemToOrder);
+router.put('/:id/items/:item_id', verifyToken, checkSchema(updateItemInOrderSchema), handleValidationErrors, orderController.updateItemInOrder);
+router.delete('/:id/items/:item_id', verifyToken, orderController.deleteItemFromOrder);
+router.post('/:id/pay', verifyToken, checkSchema(payOrderSchema), handleValidationErrors, orderController.payOrder);
 
 module.exports = router;
