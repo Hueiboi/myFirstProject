@@ -8,6 +8,8 @@ const { createOrderSchema, addItemToOrderSchema, updateItemInOrderSchema, payOrd
 
 router.get('/', verifyToken, orderController.getOrders);
 router.get('/:id', verifyToken, orderController.getOrderById);
+router.get('/table/pending', verifyToken, checkSchema(getOrderByTablePendingSchema), handleValidationErrors, orderController.getOrderByTablePending);
+router.get('/code', verifyToken, checkSchema(getOrderByOrderCodeSchema), handleValidationErrors, orderController.getOrderByOrderCode);
 router.post('/', verifyToken, checkSchema(createOrderSchema), handleValidationErrors, orderController.createOrder);
 router.post('/:id/items', verifyToken, checkSchema(addItemToOrderSchema), handleValidationErrors, orderController.addItemToOrder);
 router.put('/:id/items/:item_id', verifyToken, checkSchema(updateItemInOrderSchema), handleValidationErrors, orderController.updateItemInOrder);

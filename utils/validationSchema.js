@@ -134,6 +134,23 @@ const registerSchema = {
     }
 };
 
+const getOrderByTablePendingSchema = {
+    table_id: {
+        isInt: { options: { min: 1 } },
+        toInt: true,
+        errorMessage: 'Table ID must be a positive integer'
+    }
+};
+
+const getOrderByOrderCodeSchema = {
+    order_code: {
+        isString: true,
+        isLength: { options: { min: 1, max: 50 } },
+        trim: true,
+        errorMessage: 'Order code must be a string between 1 and 50 characters'
+    }
+};
+
 module.exports = {
     createMenuSchema,
     createOrderSchema,
@@ -143,5 +160,7 @@ module.exports = {
     createTableSchema,
     updateTableSchema,
     createPromotionSchema,
-    registerSchema
+    registerSchema,
+    getOrderByTablePendingSchema,
+    getOrderByTablePendingSchema
 };

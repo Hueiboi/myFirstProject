@@ -1,5 +1,11 @@
 const con = require('../config/db');
 
+const generateOrderCode = () => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const random = Math.floor(100 + Math.random() * 900);
+    return `ORD-${date}-${random}`;
+};
+
 const orderModel = {
     getAll: (user_id, date) => {
         let query = 'SELECT * FROM orders WHERE user_id = $1';
@@ -17,9 +23,21 @@ const orderModel = {
         [id, user_id]
     ),
 
-    create: (user_id, table_id, promotion_id) => con.query(
-        'INSERT INTO orders (user_id, table_id, total_amount, status, promotion_id, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING *',
-        [user_id, table_id, 0, 'pending', promotion_id]
+    getByTablePending: (table_id) => con.query(
+        'SELECT o.*, oi.menu_id, oi.quantity, oi.price FROM orders o ' +
+        'LEFT JOIN order_items oi ON o.id = oi.order_id WHERE o.table_id = $1 AND o.status = $2',
+        [table_id, 'pending']
+    ),
+
+    getByOrderCode: (order_code) => con.query(
+        'SELECT o.*, oi.menu_id, oi.quantity, oi.price FROM orders o ' +
+        'LEFT JOIN order_items oi ON o.id = oi.order_id WHERE o.order_code = $1',
+        [order_code]
+    ),
+
+    create: (table_id, promotion_id, user_id = null, order_type = 'dine_in') => con.query(
+        'INSERT INTO orders (table_id, total_amount, status, promotion_id, user_id, order_type, order_code, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) RETURNING *',
+        [table_id, 0, 'pending', promotion_id, user_id, order_type, generateOrderCode()]
     ),
 
     addItem: async (order_id, menu_id, quantity) => {

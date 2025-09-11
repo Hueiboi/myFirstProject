@@ -25,16 +25,20 @@ const jwt = require('jsonwebtoken');
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ status: "error", msg: "Token missing or invalid" });
+        //return res.status(401).json({ status: "error", msg: "Token missing or invalid" }); Trường hợp bắt buộc có account thì nên dùng
+        req.user = null; // Trường hợp user có thể order trực tiếp từ quầy => không token
+        return next();
     }
     const token = authHeader.split(' ')[1];
-    try {
+    try {// trường hợp user dùng tài khoản
         const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
         req.user = decoded; // Lưu user_id và role vào req.user
         next();
-    } catch (err) {
-        res.status(401).json({ status: "error", msg: "Invalid token" });
-        console.error(err);
+    } catch (err) { // token lỗi, không tài khoản => dùng null
+        // res.status(401).json({ status: "error", msg: "Invalid token" });
+        // console.error(err);
+        req.user = null;
+        next()
     }
 };
 
