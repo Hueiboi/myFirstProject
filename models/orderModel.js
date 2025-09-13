@@ -41,23 +41,33 @@ const orderModel = {
     ),
 
     addItem: async (order_id, menu_id, quantity) => {
-        const menu = await con.query('SELECT price, stock_quantity FROM menu WHERE id = $1', [menu_id]);
-        if (menu.rows.length === 0) throw new Error("Menu item not found");
-        const price = menu.rows[0].price;
-        const stock = menu.rows[0].stock_quantity;
-        if (stock < quantity) throw new Error("Not enough stock");
+        const client = await con.connect(); // Kết nối client cho transaction
+        try {
+            await client.query('BEGIN');
+            const menu = await client.query('SELECT price, stock_quantity FROM menu WHERE id = $1', [menu_id]);
+            if (menu.rows.length === 0) throw new Error("Menu item not found");
+            const price = menu.rows[0].price;
+            const stock = menu.rows[0].stock_quantity;
+            if (stock < quantity) throw new Error("Not enough stock");
 
-        await con.query('UPDATE menu SET stock_quantity = stock_quantity - $1 WHERE id = $2', [quantity, menu_id]);
-        const result = await con.query(
-            'INSERT INTO order_items (order_id, menu_id, quantity, price, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *',
-            [order_id, menu_id, quantity, price]
-        );
+            await client.query('UPDATE menu SET stock_quantity = stock_quantity - $1 WHERE id = $2', [quantity, menu_id]);
+            const result = await client.query(
+                'INSERT INTO order_items (order_id, menu_id, quantity, price, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *',
+                [order_id, menu_id, quantity, price]
+            );
 
-        await con.query(
-            'UPDATE orders SET total_amount = total_amount + $1 WHERE id = $2',
-            [price * quantity, order_id]
-        );
-        return result;
+            await client.query(
+                'UPDATE orders SET total_amount = total_amount + $1 WHERE id = $2',
+                [price * quantity, order_id]
+            );
+            await client.query('COMMIT');
+            return result;
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     },
 
     updateItem: async (item_id, quantity) => {

@@ -162,5 +162,5 @@ module.exports = {
     createPromotionSchema,
     registerSchema,
     getOrderByTablePendingSchema,
-    getOrderByTablePendingSchema
+    getOrderByOrderCodeSchema
 };

@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const tablesController = require('../controllers/tablesController');
+const tableControllers = require('../controllers/tableControllers');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { isAdmin } = require('../middlewares/isAdmin');
 
-router.get('/', verifyToken, tablesController.getTables);
-router.post('/', verifyToken, isAdmin, tablesController.createTable);
-router.put('/:id', verifyToken, isAdmin, tablesController.updateTable);
-router.delete('/:id', verifyToken, isAdmin, tablesController.deleteTable);
+router.get('/', verifyToken, tableControllers.getTables);
+router.post('/', verifyToken, isAdmin, tableControllers.createTable);
+router.put('/:id', verifyToken, isAdmin, tableControllers.updateTable);
+router.delete('/:id', verifyToken, isAdmin, tableControllers.deleteTable);
 
 module.exports = router;

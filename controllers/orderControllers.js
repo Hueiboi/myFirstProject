@@ -91,17 +91,13 @@ exports.addItemToOrder = async (req, res) => {
     try {
         const { id } = req.params;
         const { menu_id, quantity } = req.body;
-        if (!menu_id || !quantity) return res.status(400).json({ status: "error", msg: "Missing menu ID or quantity" });
         const order = await con.query('SELECT status FROM orders WHERE id = $1', [id]);
-
         if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
             return res.status(400).json({ status: "error", msg: "Order not pending" });
         }
-
         const result = await orderModel.addItem(id, menu_id, quantity);
         res.status(201).json({ status: "success", msg: "Item added to order", data: result.rows[0] });
-    } 
-    catch (err) {
+    } catch (err) {
         res.status(500).json({ status: "error", msg: "Error adding item", error: err.message });
         console.error(err);
     }

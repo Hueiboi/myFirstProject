@@ -23,7 +23,7 @@ temp/
 .cache/
 
 # Database files (nếu có SQLite hoặc file data local)
-database/*.db
+config/
 
 # IDE & OS-specific
 .vscode/
