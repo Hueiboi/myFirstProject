@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const tableControllers = require('../controllers/tableControllers');
+const tableControllers = require('../controllers/tablesControllers');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { isAdmin } = require('../middlewares/isAdmin');
 

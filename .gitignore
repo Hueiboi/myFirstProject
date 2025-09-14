@@ -39,3 +39,5 @@ test/
 # yarn.lock
 
 generateToken.js
+
+*.txt

@@ -1,4 +1,4 @@
-const tablesModel = require('../models/tableModel');
+const tablesModel = require('../models/tablesModel');
 
 exports.getTables = async (req, res) => {
     try {
