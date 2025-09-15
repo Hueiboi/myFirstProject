@@ -45,3 +45,4 @@ Mục tiêu: quản lý **menu, bàn, đơn hàng, thanh toán** cho staff và a
 1. Lỗi "Client has already been connected"
 2. Chức năng sửa promotion
 3. Chức năng kiểm tra tài khoản staff của admin
+4. Thiếu kiểm tra gmail khi tạo tài khoản

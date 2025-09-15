@@ -2,7 +2,11 @@ acc1:
 { 
   "username": "Hueiboi",
   "password": "qwerty12345",
-  "email": "buih@gmail.com",
-  "address": "Hanoi"
+
 }
 
+acc2: 
+{
+  "username": "AdminPOS",
+  "password": "adminpos12345",
+}
