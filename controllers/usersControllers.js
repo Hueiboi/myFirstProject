@@ -1,4 +1,5 @@
 const con = require('../config/db')
+const bcrypt = require('bcrypt')
 
 exports.createUser = async (req, res) => {
     try {

@@ -67,8 +67,8 @@ exports.getOrderByOrderCode = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        const { table_id, promotion_id, order_type = 'dine_in' } = req.body;
         const user_id = req.user ? req.user.user_id : null;
+        const { table_id, promotion_id, order_type = 'dine-in' } = req.body;
         const table_status = await con.query('SELECT status FROM tables WHERE id = $1', [table_id]);
         //Kiểm tra loại đơn, id bàn và trạng thái bàn còn đủ cho dùng tại chỗ hay không
         if (order_type === 'dine_in' && (!table_id || !table_status.rows[0]?.status === 'available')) { 
@@ -145,8 +145,9 @@ exports.payOrder = async (req, res) => {
     try {
         const { id } = req.params;
         const { method } = req.body;
+        
         if (!method) return res.status(400).json({ status: "error", msg: "Missing payment method" });
-        const order = await con.query('SELECT total_amount, table_id FROM orders WHERE id = $1', [id]);
+        const order = await con.query('SELECT * FROM orders WHERE id = $1', [id]);
         if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
             return res.status(400).json({ status: "error", msg: "Order not pending" });
         }
