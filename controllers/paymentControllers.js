@@ -7,7 +7,8 @@ exports.getInvoiceDetails = async (req, res) => {
             `SELECT 
                 o.order_code, o.created_at, 
                 (o.total_amount * (1 - COALESCE(p.discount_percentage / 100, 0))) AS total_amount,
-                o.promotion_id, p.name AS promotion_name, p.discount_percentage
+                o.promotion_id, p.name AS promotion_name, p.discount_percentage,
+                o.created_by
             FROM orders o
             LEFT JOIN promotions p ON o.promotion_id = p.id
             WHERE o.id = $1 AND o.status = 'completed'`,

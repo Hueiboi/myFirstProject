@@ -68,20 +68,19 @@ exports.getOrderByOrderCode = async (req, res) => {
 exports.createOrder = async (req, res) => {
     try {
         const user_id = req.user ? req.user.user_id : null;
+        const username = req.user ? req.user.username : null; // Lấy username từ token
         const { table_id, promotion_id, order_type = 'dine-in' } = req.body;
         const table_status = await con.query('SELECT status FROM tables WHERE id = $1', [table_id]);
-        //Kiểm tra loại đơn, id bàn và trạng thái bàn còn đủ cho dùng tại chỗ hay không
-        if (order_type === 'dine_in' && (!table_id || !table_status.rows[0]?.status === 'available')) { 
+        if (order_type === 'dine_in' && (!table_id || !table_status.rows[0]?.status === 'available')) {
             return res.status(400).json({ status: "error", msg: "Table not available for dine-in" });
         }
 
-        const result = await orderModel.create(table_id, promotion_id, user_id, order_type);
+        const result = await orderModel.create(table_id, promotion_id, user_id, order_type, username); // Truyền username
         if (order_type === 'dine_in') {
             await con.query('UPDATE tables SET status = $1 WHERE id = $2', ['occupied', table_id]);
         }
         res.status(201).json({ status: "success", msg: "Order created successfully", data: result.rows[0] });
-    } 
-    catch (err) {
+    } catch (err) {
         res.status(500).json({ status: "error", msg: "Error creating order", error: err.message });
         console.error(err);
     }

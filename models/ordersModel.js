@@ -35,9 +35,9 @@ const orderModel = {
         [order_code]
     ),
 
-    create: (table_id, promotion_id, user_id = null, order_type = 'dine_in') => con.query(
-        'INSERT INTO orders (table_id, total_amount, status, promotion_id, user_id, order_type, order_code, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) RETURNING *',
-        [table_id, 0, 'pending', promotion_id, user_id, order_type, generateOrderCode()]
+    create: (table_id, promotion_id, user_id = null, order_type, username) => con.query(
+        'INSERT INTO orders (table_id, total_amount, status, promotion_id, user_id, order_type, order_code, created_by, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP) RETURNING *',
+        [table_id, 0, 'pending', promotion_id, user_id, order_type, generateOrderCode(), username]
     ),
 
     addItem: async (order_id, menu_id, quantity) => {
