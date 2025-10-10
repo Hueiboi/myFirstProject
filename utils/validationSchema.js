@@ -38,16 +38,16 @@ const createOrderSchema = {
     promotion_id: {
         isInt: { options: { min: 1 } },
         toInt: true,
-        optional: true,
+        optional: ({nullable: true}),
         errorMessage: 'Promotion ID must be a positive integer'
     }
 };
 
 const addItemToOrderSchema = {
-    menu_id: {
+    product_id: {
         isInt: { options: { min: 1 } },
         toInt: true,
-        errorMessage: 'Menu ID must be a positive integer'
+        errorMessage: 'Product ID must be a positive integer'
     },
     quantity: {
         isInt: { options: { min: 1 } },
@@ -65,10 +65,10 @@ const updateItemInOrderSchema = {
 };
 
 const payOrderSchema = {
-    method: {
+    payment_method: {
         isString: true,
-        isIn: { options: [['cash', 'card', 'mobile']] },
-        errorMessage: 'Method must be one of: cash, card, mobile'
+        isIn: { options: [['cash', 'card', 'e-wallet']] },
+        errorMessage: 'Method must be one of: cash, card, e-wallet'
     }
 };
 
@@ -134,13 +134,15 @@ const registerSchema = {
     }
 };
 
-const getOrderByTablePendingSchema = {
-    table_id: {
-        isInt: { options: { min: 1 } },
-        toInt: true,
-        errorMessage: 'Table ID must be a positive integer'
-    }
-};
+const getOrderByTableCompletedSchema = {
+  table_id: {
+    in: ['params'],
+    isInt: { options: { min: 1 } },
+    toInt: true,
+    errorMessage: 'Table ID must be a positive integer'
+  }
+}
+
 
 const getOrderByOrderCodeSchema = {
     order_code: {
@@ -161,6 +163,6 @@ module.exports = {
     updateTableSchema,
     createPromotionSchema,
     registerSchema,
-    getOrderByTablePendingSchema,
+    getOrderByTableCompletedSchema,
     getOrderByOrderCodeSchema
 };

@@ -34,8 +34,7 @@ exports.login = async (req, res) => {
         if (!valid) return res.status(400).json({ status: "error", msg: "Invalid credentials" });
         const accessToken = jwt.sign(
             { user_id: user.rows[0].id, role: user.rows[0].role },
-            process.env.ACCESS_TOKEN,
-            { expiresIn: '1h' }
+            process.env.ACCESS_TOKEN, 
         );
         res.status(200).json({ status: "success", msg: "Login successful", data: { access_token: accessToken } });
     } catch (err) {

@@ -6,6 +6,7 @@ exports.getOrders = async (req, res) => {
         const user_id = req.user.user_id;
         const { date } = req.query;
         const result = await orderModel.getAll(user_id, date);
+        console.log("req.user:", req.user);
         res.status(200).json({ status: "success", data: result.rows, msg: "Orders retrieved successfully" });
     } 
     catch (err) {
@@ -31,22 +32,24 @@ exports.getOrderById = async (req, res) => {
     }
 };
 
-exports.getOrderByTablePending = async (req, res) => {
-    try {
-        const { table_id } = req.query;
-        if (!table_id) {
-            return res.status(400).json({ status: "error", msg: "Missing table_id" });
-        }
-        const result = await orderModel.getByTablePending(table_id);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ status: "error", msg: "No pending order found for this table" });
-        }
-        res.status(200).json({ status: "success", data: result.rows, msg: "Pending order retrieved successfully" });
-    } catch (err) {
-        res.status(500).json({ status: "error", msg: "Error retrieving order", error: err.message });
-        console.error(err);
+exports.getOrderByTableCompleted = async (req, res) => {
+  try {
+    const { table_id } = req.params
+    if (!table_id) {
+      return res.status(400).json({ status: "error", msg: "Missing table_id" })
     }
-};
+
+    const result = await orderModel.getByTableCompleted(table_id)
+    if (result.rows.length === 0) {
+      return res.status(404).json({ status: "error", msg: "No completed orders found for this table" })
+    }
+
+    res.status(200).json({ status: "success", data: result.rows, msg: "Completed orders retrieved successfully" })
+  } catch (err) {
+    res.status(500).json({ status: "error", msg: "Error retrieving completed orders", error: err.message })
+    console.error(err)
+  }
+}
 
 exports.getOrderByOrderCode = async (req, res) => {
     try {
@@ -67,40 +70,60 @@ exports.getOrderByOrderCode = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        const user_id = req.user ? req.user.user_id : null;
-        const username = req.user ? req.user.username : null; // Lấy username từ token
+        // Nếu có user từ token thì lấy, không thì để null
+        const user_id = req.user ? req.user.user_id : null
+        const username = req.body.created_by || (req.user ? req.user.username : null)
+
         const { table_id, promotion_id, order_type = 'dine-in' } = req.body;
+
+        // Kiểm tra bàn có available không (nếu order_type là dine-in)
         const table_status = await con.query('SELECT status FROM tables WHERE id = $1', [table_id]);
-        if (order_type === 'dine_in' && (!table_id || !table_status.rows[0]?.status === 'available')) {
+        if (order_type === 'dine-in' && (!table_id || table_status.rows[0]?.status !== 'available')) {
             return res.status(400).json({ status: "error", msg: "Table not available for dine-in" });
         }
 
-        const result = await orderModel.create(table_id, promotion_id, user_id, order_type, username); // Truyền username
-        if (order_type === 'dine_in') {
-            await con.query('UPDATE tables SET status = $1 WHERE id = $2', ['occupied', table_id]);
-        }
+        // Gọi model tạo order
+        const result = await orderModel.create(table_id, promotion_id, user_id, order_type, username);
+
         res.status(201).json({ status: "success", msg: "Order created successfully", data: result.rows[0] });
     } catch (err) {
+        console.error("Error creating order:", err);
         res.status(500).json({ status: "error", msg: "Error creating order", error: err.message });
-        console.error(err);
     }
 };
 
 exports.addItemToOrder = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { menu_id, quantity } = req.body;
-        const order = await con.query('SELECT status FROM orders WHERE id = $1', [id]);
-        if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
-            return res.status(400).json({ status: "error", msg: "Order not pending" });
-        }
-        const result = await orderModel.addItem(id, menu_id, quantity);
-        res.status(201).json({ status: "success", msg: "Item added to order", data: result.rows[0] });
-    } catch (err) {
-        res.status(500).json({ status: "error", msg: "Error adding item", error: err.message });
-        console.error(err);
+  try {
+    const { id } = req.params;
+    const { product_id, quantity } = req.body;
+    const qty = Number(quantity)
+
+    if (!Number.isInteger(qty) || qty <= 0 || !product_id) {
+    return res.status(400).json({
+        status: "error",
+        msg: "Missing or invalid product_id or quantity",
+    })
     }
+    // const result = await con.query(
+    //   `INSERT INTO order_items (id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *`,
+    //   [orderId, product_id, quantity]
+    // );
+    const result = await orderModel.addItem(id, product_id, qty);
+
+    // Update bàn thành occupied sau khi có item
+    await con.query(
+      `UPDATE tables SET status = $1 
+       WHERE id = (SELECT table_id FROM orders WHERE id = $2)`,
+      ['occupied', id]
+    );
+
+    res.status(201).json({ status: "success", data: result.rows[0] });
+  } catch (err) {
+    console.error("Error adding item:", err.message);
+    res.status(500).json({ status: "error", msg: "Error adding item", error: err.message });
+  }
 };
+
 
 exports.updateItemInOrder = async (req, res) => {
     try {
@@ -143,14 +166,14 @@ exports.deleteItemFromOrder = async (req, res) => {
 exports.payOrder = async (req, res) => {
     try {
         const { id } = req.params;
-        const { method } = req.body;
+        const { payment_method, total_amount } = req.body;
         
-        if (!method) return res.status(400).json({ status: "error", msg: "Missing payment method" });
+        if (!payment_method) return res.status(400).json({ status: "error", msg: "Missing payment method" });
         const order = await con.query('SELECT * FROM orders WHERE id = $1', [id]);
         if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
             return res.status(400).json({ status: "error", msg: "Order not pending" });
         }
-        await orderModel.pay(id, method, order.rows[0].total_amount);
+        await orderModel.pay(id, payment_method, total_amount);
         await orderModel.updateStatus(id, 'completed');
         await con.query('UPDATE tables SET status = $1 WHERE id = $2', ['available', order.rows[0].table_id]);
         res.status(200).json({ status: "success", msg: "Payment successful" });
