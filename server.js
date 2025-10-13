@@ -10,32 +10,15 @@ const PORT = process.env.PORT;
 //Trình duyệt chặn req do origin khác nhau nên cần CORS
 app.use(cors({
     origin: "http://localhost:3001",
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }))
 
 app.use(express.json());
 app.use('/api', require('./routes'));
 
-
 app.use(express.static(path.join(__dirname, 'public')));
-//Routing đường dẫn đến các giao diện tĩnh mặc định
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/html/home.html')) //route đến trang HOME
-});
-
-app.get('/products', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/html/products.html')) //route đến PRODUCT
-});
-
-app.get('/cart', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/html/cart.html')) //route đến CART
-});
-
-// Tóm tắt lý do bạn cần 2 dòng app.get(...):
-// Vì bạn đã tách các file HTML vào thư mục con (public/html), 
-// nên bạn cần viết rõ đường dẫn file cụ thể khi gửi về client.
-// Nếu bạn không viết app.get(...),
-// thì khi truy cập / hay /cart, trình duyệt không nhận được file HTML tương ứng.
 
 app.listen(PORT , () => console.log(`Server is running on port ${PORT}`))
 
