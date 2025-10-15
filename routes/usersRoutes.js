@@ -7,6 +7,7 @@ const { checkSchema } = require('express-validator');
 const { handleValidationErrors } = require('../middlewares/validate');
 const { registerSchema } = require('../utils/validationSchema');
 
+router.get('/all', verifyToken, isAdmin, userController.getAllUsers);
 router.post('/', verifyToken, isAdmin, checkSchema(registerSchema), handleValidationErrors, userController.createUser);
 router.put('/:id', verifyToken, isAdmin, checkSchema(registerSchema), handleValidationErrors, userController.updateUser);
 router.delete('/:id', verifyToken, isAdmin, userController.deleteUser);

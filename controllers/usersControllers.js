@@ -1,6 +1,25 @@
 const con = require('../config/db')
 const bcrypt = require('bcrypt')
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const { role } = req.query
+    let query = "SELECT id, username, role, email FROM users"
+    const params = []
+
+    if (role) {
+      query += " WHERE role = $1"
+      params.push(role) 
+    }
+
+    const result = await con.query(query, params)
+    res.status(200).json({ status: "success", data: result.rows })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ status: "error", msg: "Failed to fetch users" })
+  }
+}
+
 exports.createUser = async (req, res) => {
     try {
         const { username, password, email, address } = req.body;
