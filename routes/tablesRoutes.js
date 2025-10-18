@@ -6,7 +6,7 @@ const { isAdmin } = require('../middlewares/isAdmin');
 
 router.get('/', verifyToken, tableControllers.getTables);
 router.post('/', verifyToken, isAdmin, tableControllers.createTable);
-router.put('/:id/status', verifyToken, isAdmin, tableControllers.updateTable);
+router.put('/:id', verifyToken, isAdmin, tableControllers.updateTable);
 router.delete('/:id', verifyToken, isAdmin, tableControllers.deleteTable);
 
 module.exports = router;

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const con = require('../config/db');
 
 // Thời gian sống của token
-const ACCESS_EXPIRE = '15m';
+const ACCESS_EXPIRE = '3h';
 const REFRESH_EXPIRE = '7d';
 
 // Tạo access token

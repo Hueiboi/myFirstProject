@@ -27,11 +27,16 @@ exports.createTable = async (req, res) => {
 exports.updateTable = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { table_number, status } = req.body;
+        if(!table_number) {
+            return res.status(400).json({status: "error", msg: "Invalid table number"});
+        }
+
         if (!status || !['available', 'occupied'].includes(status)) {
             return res.status(400).json({ status: "error", msg: "Invalid status" });
         }
-        const result = await tablesModel.update(id, status);
+
+        const result = await tablesModel.update(id, table_number, status);
         if (result.rowCount === 0) {
             return res.status(404).json({ status: "error", msg: "Table not found" });
         }

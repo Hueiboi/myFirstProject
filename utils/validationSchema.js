@@ -82,12 +82,20 @@ const createTableSchema = {
 };
 
 const updateTableSchema = {
-    status: {
-        isString: true,
-        isIn: { options: [['available', 'occupied']] },
-        errorMessage: 'Status must be either available or occupied'
-    }
-};
+  table_number: {
+    optional: true,
+    isString: true,
+    isLength: { options: { min: 1, max: 50 } },
+    trim: true,
+    errorMessage: 'Table number must be between 1 and 50 characters',
+  },
+  status: {
+    optional: true,
+    isString: true,
+    isIn: { options: [['available', 'occupied', 'reserved']] },
+    errorMessage: 'Status must be either available, occupied, or reserved',
+  },
+}
 
 const createPromotionSchema = {
     name: {
@@ -112,27 +120,58 @@ const createPromotionSchema = {
 };
 
 const registerSchema = {
-    username: {
+        username: {
         isString: true,
         isLength: { options: { min: 3, max: 50 } },
         trim: true,
-        errorMessage: 'Username must be a string between 3 and 50 characters'
+        errorMessage: 'Username must be a string between 3 and 50 characters',
     },
     password: {
         isString: true,
         isLength: { options: { min: 6 } },
-        errorMessage: 'Password must be at least 6 characters'
+        errorMessage: 'Password must be at least 6 characters',
     },
     email: {
         isEmail: true,
-        errorMessage: 'Email must be a valid email address'
+        errorMessage: 'Email must be a valid email address',
     },
     address: {
         isString: true,
         optional: true,
-        errorMessage: 'Address must be a string'
-    }
+        errorMessage: 'Address must be a string',
+    },
 };
+
+const updateStaffSchema = {
+  username: {
+    optional: true,
+    isString: true,
+    isLength: { options: { min: 3, max: 50 } },
+    trim: true,
+    errorMessage: 'Username must be between 3 and 50 characters',
+  },
+  password: {
+    optional: true,
+    isString: true,
+    isLength: { options: { min: 6 } },
+    errorMessage: 'Password must be at least 6 characters if provided',
+  },
+  email: {
+    optional: true,
+    isEmail: true,
+    errorMessage: 'Email must be a valid email address',
+  },
+  address: {
+    optional: true,
+    isString: true,
+    errorMessage: 'Address must be a string',
+  },
+  role: {
+    optional: true,
+    isIn: { options: [['admin', 'staff']] },
+    errorMessage: 'Role must be either admin or staff',
+  },
+}
 
 const getOrderByTableCompletedSchema = {
   table_id: {
@@ -142,7 +181,6 @@ const getOrderByTableCompletedSchema = {
     errorMessage: 'Table ID must be a positive integer'
   }
 }
-
 
 const getOrderByOrderCodeSchema = {
     order_code: {
@@ -154,15 +192,16 @@ const getOrderByOrderCodeSchema = {
 };
 
 module.exports = {
-    createMenuSchema,
-    createOrderSchema,
-    addItemToOrderSchema,
-    updateItemInOrderSchema,
-    payOrderSchema,
-    createTableSchema,
-    updateTableSchema,
-    createPromotionSchema,
-    registerSchema,
-    getOrderByTableCompletedSchema,
-    getOrderByOrderCodeSchema
-};
+  createMenuSchema,
+  createOrderSchema,
+  addItemToOrderSchema,
+  updateItemInOrderSchema,
+  payOrderSchema,
+  createTableSchema,
+  updateTableSchema,
+  createPromotionSchema,
+  registerSchema,
+  updateStaffSchema,
+  getOrderByTableCompletedSchema,
+  getOrderByOrderCodeSchema,
+}

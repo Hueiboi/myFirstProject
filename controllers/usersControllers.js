@@ -40,22 +40,38 @@ exports.createUser = async (req, res) => {
 };
 
 exports.updateUser = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const { username, password, email, address } = req.body;
-        let hashedPassword = password;
-        if (password) hashedPassword = await bcrypt.hash(password, 10);
-        const result = await con.query(
-            'UPDATE users SET username = $1, password = $2, email = $3, address = $4 WHERE id = $5 AND role = $6 RETURNING *',
-            [username, hashedPassword, email, address, id, 'staff']
-        );
-        if (result.rowCount === 0) return res.status(404).json({ status: "error", msg: "Staff not found" });
-        res.status(200).json({ status: "success", data: result.rows[0], msg: "Staff updated successfully" });
-    } catch (err) {
-        res.status(500).json({ status: "error", msg: "Error updating staff", error: err.message });
-        console.error(err);
+  try {
+    const { id } = req.params
+    const { username, email, address, password } = req.body
+
+    let query = `UPDATE users SET username = $1, email = $2, address = $3`
+    const params = [username, email, address]
+    let paramIndex = 4
+
+    if (password && password.trim().length >= 6) {
+      const hashedPassword = await bcrypt.hash(password, 10)
+      query += `, password = $${paramIndex}`
+      params.push(hashedPassword)
+      paramIndex++
     }
-};
+
+    query += ` WHERE id = $${paramIndex} AND role = $${paramIndex + 1} RETURNING *`
+    params.push(id, "staff")
+
+    const result = await con.query(query, params)
+    if (result.rowCount === 0)
+      return res.status(404).json({ status: "error", msg: "Staff not found" })
+
+    res.status(200).json({
+      status: "success",
+      data: result.rows[0],
+      msg: "Staff updated successfully",
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ status: "error", msg: "Error updating staff", error: err.message })
+  }
+}
 
 exports.deleteUser = async (req, res) => {
     try {
