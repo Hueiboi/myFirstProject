@@ -46,11 +46,11 @@ exports.getItemById = async (req, res) => {
 
 exports.createItem = async (req, res) => {
     try {
-        const { name, id, price, stock_quantity, category } = req.body;
-        if (!name || !id || !price || !stock_quantity) {
+        const { name, price, stock_quantity, category } = req.body;
+        if (!name || !price || !stock_quantity) {
             return res.status(400).json({ status: "error", msg: "Missing required fields" });
         }
-        await menu.create(name, id, price, stock_quantity, category);
+        await menu.create(name, price, stock_quantity, category);
         res.status(201).json({ status: "success", msg: "Item created successfully" });
     } catch (err) {
         res.status(500).json({ status: "error", msg: "Error creating item", error: err.message });
@@ -71,7 +71,7 @@ exports.createManyItems = async (req, res) => {
                     return { ...item, status: "invalid item data" };
                 }
                 try {
-                    await menu.create(name, id, price, stock_quantity, category);
+                    await menu.create(name, price, stock_quantity, category);
                     return { ...item, status: "created successfully" };
                 } catch (err) {
                     console.error(err);

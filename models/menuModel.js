@@ -20,9 +20,9 @@ const menuModel = {
         return con.query(`SELECT * FROM menu ORDER BY ${safeSortBy} ${safeOrder}`);
     },
 
-    create: (name, id, price, stock_quantity, category) => con.query(
-        'INSERT INTO menu (name, id, price, stock_quantity, category, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)',
-        [name, id, price, stock_quantity, category]
+    create: (name, price, stock_quantity, category) => con.query(
+        'INSERT INTO menu (name, price, stock_quantity, category, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *',
+        [name, price, stock_quantity, category]
     ),
 
     update: (id, name, price, stock_quantity, category) => con.query(
