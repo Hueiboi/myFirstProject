@@ -17,11 +17,7 @@ const orderModel = {
         return con.query(query, params);
     },
 
-    getById: (id, user_id) => con.query(
-        'SELECT o.*, oi.product_id, oi.quantity, oi.price FROM orders o ' +
-        'LEFT JOIN order_items oi ON o.id = oi.order_id WHERE o.id = $1 AND o.user_id = $2',
-        [id, user_id]
-    ),
+//getById
 
     getByTableCompleted: (table_id) => con.query(`
         SELECT 

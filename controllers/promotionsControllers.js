@@ -43,12 +43,7 @@ exports.createPromotion = async (req, res) => {
       })
     }
 
-    const result = await promotionsModel.create(
-      name,
-      discount_percentage,
-      start_date,
-      end_date
-    )
+    const result = await promotionsModel.create(name,discount_percentage,start_date,end_date)
 
     res.status(201).json({
       status: "success",

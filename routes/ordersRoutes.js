@@ -6,14 +6,16 @@ const { handleValidationErrors } = require('../middlewares/validate');
 const { verifyToken } = require('../middlewares/verifyToken');
 const { createOrderSchema, addItemToOrderSchema, updateItemInOrderSchema, payOrderSchema, getOrderByTableCompletedSchema, getOrderByOrderCodeSchema } = require('../utils/validationSchema');
 
+//CRUD
 router.get('/', verifyToken, orderControllers.getOrders);
-router.get('/:id', verifyToken, orderControllers.getOrderById);
 router.get('/table/completed/:table_id', verifyToken, checkSchema(getOrderByTableCompletedSchema), handleValidationErrors, orderControllers.getOrderByTableCompleted);
-router.get('/code', verifyToken, checkSchema(getOrderByOrderCodeSchema), handleValidationErrors, orderControllers.getOrderByOrderCode);
+// router.get('/:id', verifyToken, orderControllers.getOrderById);
+// router.get('/code', verifyToken, checkSchema(getOrderByOrderCodeSchema), handleValidationErrors, orderControllers.getOrderByOrderCode);
 router.post('/', verifyToken, checkSchema(createOrderSchema), handleValidationErrors, orderControllers.createOrder);
-router.post('/:id/items', verifyToken, checkSchema(addItemToOrderSchema), handleValidationErrors, orderControllers.addItemToOrder);
 router.put('/:id/items/:item_id', verifyToken, checkSchema(updateItemInOrderSchema), handleValidationErrors, orderControllers.updateItemInOrder);
 router.delete('/:id/items/:item_id', verifyToken, orderControllers.deleteItemFromOrder);
+//Add item
+router.post('/:id/items', verifyToken, checkSchema(addItemToOrderSchema), handleValidationErrors, orderControllers.addItemToOrder);
+//Payment
 router.post('/:id/pay', verifyToken, checkSchema(payOrderSchema), handleValidationErrors, orderControllers.payOrder);
-
 module.exports = router;

@@ -83,31 +83,39 @@ exports.login = async (req, res) => {
 
 // Dùng ref token để lấy access token mới
 exports.refresh = async (req, res) => {
-  const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ status: "error", msg: "No refresh token" });
+  // Đọc refresh token từ body (ưu tiên) hoặc cookie nếu có
+  const token = req.body.refresh_token || req.body.refreshToken || req.cookies?.refreshToken;
+  if (!token) {
+    return res.status(401).json({ status: "error", msg: "No refresh token" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    const userRes = await con.query('SELECT * FROM users WHERE id = $1', [decoded.user_id]);
+    const userRes = await con.query("SELECT * FROM users WHERE id = $1", [decoded.user_id]);
     const user = userRes.rows[0];
-    if (!user || user.refresh_token !== token) // Kiểm tra tính hợp lệ của ref token từ DB và cookie
+    if (!user || user.refresh_token !== token) {
       return res.status(403).json({ status: "error", msg: "Invalid refresh token" });
+    }
 
-    const newAccess = generateAccessToken(user); // Khớp ref token sẽ cấp access token mới
-    res.json({ status: "success", data: { access_token: newAccess } });
+    const newAccess = generateAccessToken(user);
+    return res.json({ status: "success", data: { access_token: newAccess } });
   } catch (err) {
-    res.status(403).json({ status: "error", msg: "Invalid or expired refresh token" });
+    console.error("Refresh token error:", err);
+    return res
+      .status(403)
+      .json({ status: "error", msg: "Invalid or expired refresh token" });
   }
 };
 
 exports.logout = async (req, res) => {
-  const token = req.cookies.refreshToken; // Lấy ref token từ cookie
+  const token = req.cookies.refreshToken;
   if (token) {
-    try { // Xóa hoàn toàn dấu vết ref token
+    try {
       const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-      await con.query('UPDATE users SET refresh_token = NULL WHERE id = $1', [decoded.user_id]); // Xóa ref token ở DB
+      await con.query('UPDATE users SET refresh_token = NULL WHERE id = $1', [decoded.user_id]);
     } catch {}
   }
-  res.clearCookie('refreshToken'); // Xóa ref token ở cookie
+  res.clearCookie('refreshToken');
   res.json({ status: "success", msg: "Logged out successfully" });
 };
+

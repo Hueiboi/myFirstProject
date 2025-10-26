@@ -16,21 +16,24 @@ exports.getOrders = async (req, res) => {
 };
 
 exports.getOrderById = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const user_id = req.user.user_id;
-        const result = await orderModel.getById(id, user_id);
-        if (result.rowCount > 0) {
-            res.status(200).json({ status: "success", data: result.rows, msg: "Order retrieved successfully" });
-        } else {
-            res.status(404).json({ status: "error", msg: "Order not found" });
-        }
-    } 
-    catch (err) {
-        res.status(500).json({ status: "error", msg: "Error retrieving order", error: err.message });
-        console.error(err);
+  try {
+    const id = req.params.id;
+    const result = await orderModel.getById(id);
+    if (result.rowCount > 0) {
+      res.status(200).json({ 
+        status: "success", 
+        data: result.rows[0], 
+        msg: "Order retrieved successfully" 
+      });
+    } else {
+      res.status(404).json({ status: "error", msg: "Order not found" });
     }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "error", msg: "Error retrieving order", error: err.message });
+  }
 };
+
 
 exports.getOrderByTableCompleted = async (req, res) => {
   try {
@@ -51,22 +54,22 @@ exports.getOrderByTableCompleted = async (req, res) => {
   }
 }
 
-exports.getOrderByOrderCode = async (req, res) => {
-    try {
-        const { order_code } = req.query;
-        if (!order_code) {
-            return res.status(400).json({ status: "error", msg: "Missing order_code" });
-        }
-        const result = await orderModel.getByOrderCode(order_code);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ status: "error", msg: "Order not found" });
-        }
-        res.status(200).json({ status: "success", data: result.rows, msg: "Order retrieved successfully" });
-    } catch (err) {
-        res.status(500).json({ status: "error", msg: "Error retrieving order", error: err.message });
-        console.error(err);
-    }
-};
+// exports.getOrderByOrderCode = async (req, res) => {
+//     try {
+//         const { order_code } = req.query;
+//         if (!order_code) {
+//             return res.status(400).json({ status: "error", msg: "Missing order code" });
+//         }
+//         const result = await orderModel.getByOrderCode(order_code);
+//         if (result.rows.length === 0) {
+//             return res.status(404).json({ status: "error", msg: "Order not found" });
+//         }
+//         res.status(200).json({ status: "success", data: result.rows, msg: "Order retrieved successfully" });
+//     } catch (err) {
+//         res.status(500).json({ status: "error", msg: "Error retrieving order", error: err.message });
+//         console.error(err);
+//     }
+// };
 
 exports.createOrder = async (req, res) => {
     try {
@@ -104,10 +107,6 @@ exports.addItemToOrder = async (req, res) => {
         msg: "Missing or invalid product_id or quantity",
     })
     }
-    // const result = await con.query(
-    //   `INSERT INTO order_items (id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *`,
-    //   [orderId, product_id, quantity]
-    // );
     const result = await orderModel.addItem(id, product_id, qty);
 
     // Update bàn thành occupied sau khi có item
@@ -164,22 +163,80 @@ exports.deleteItemFromOrder = async (req, res) => {
 };
 
 exports.payOrder = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { payment_method, total_amount } = req.body;
-        
-        if (!payment_method) return res.status(400).json({ status: "error", msg: "Missing payment method" });
-        const order = await con.query('SELECT * FROM orders WHERE id = $1', [id]);
-        if (order.rows.length === 0 || order.rows[0].status !== 'pending') {
-            return res.status(400).json({ status: "error", msg: "Order not pending" });
-        }
-        await orderModel.pay(id, payment_method, total_amount);
-        await orderModel.updateStatus(id, 'completed');
-        await con.query('UPDATE tables SET status = $1 WHERE id = $2', ['available', order.rows[0].table_id]);
-        res.status(200).json({ status: "success", msg: "Payment successful" });
-    } 
-    catch (err) {
-        res.status(500).json({ status: "error", msg: "Error processing payment", error: err.message });
-        console.error(err);
+  const client = await con.connect();
+  try {
+    const { id } = req.params;
+    const { payment_method, total_amount, promotion_id, created_by } = req.body;
+
+    await client.query("BEGIN");
+
+    // 1️⃣ Kiểm tra order tồn tại
+    const orderRes = await client.query("SELECT * FROM orders WHERE id = $1", [id]);
+    const order = orderRes.rows[0];
+    if (!order || order.status !== "pending") {
+      throw new Error("Order not pending or not found");
     }
+
+    // 2️⃣ Thêm payment mới nhất
+    const payRes = await client.query(
+      `INSERT INTO payments (order_id, payment_method, total_amount, paid_at, created_by, promotion_id)
+       VALUES ($1, $2, $3, NOW(), $4, $5)
+       RETURNING id, payment_method, total_amount, paid_at, created_by`,
+      [id, payment_method, total_amount, created_by || "Unknown", promotion_id || null]
+    );
+    const payment = payRes.rows[0];
+
+    // 3️⃣ Cập nhật trạng thái order + bàn
+    await client.query("UPDATE orders SET status = $1 WHERE id = $2", ["completed", id]);
+    await client.query("UPDATE tables SET status = $1 WHERE id = $2", ["available", order.table_id]);
+
+    // 4️⃣ Lấy invoice với LATERAL JOIN đảm bảo chỉ lấy payment mới nhất
+    const invoiceQuery = `
+      SELECT 
+        o.id AS order_id, o.order_code, o.status, o.created_at,
+        t.table_number,
+        pay.payment_method, pay.total_amount, pay.paid_at, pay.created_by,
+        json_agg(
+          json_build_object(
+            'product_id', m.id,
+            'name', m.name,
+            'quantity', oi.quantity,
+            'price', oi.price,
+            'total', oi.quantity * oi.price
+          )
+        ) AS items
+      FROM orders o
+      JOIN tables t ON o.table_id = t.id
+      LEFT JOIN LATERAL (
+        SELECT p.payment_method, p.total_amount, p.paid_at, p.created_by
+        FROM payments p
+        WHERE p.order_id = o.id
+        ORDER BY p.paid_at DESC
+        LIMIT 1
+      ) pay ON true
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      LEFT JOIN menu m ON oi.product_id = m.id
+      WHERE o.id = $1
+      GROUP BY o.id, t.table_number, pay.payment_method, pay.total_amount, pay.paid_at, pay.created_by;
+    `;
+
+    const invoiceRes = await client.query(invoiceQuery, [id]);
+    await client.query("COMMIT");
+
+    return res.status(200).json({
+      status: "success",
+      msg: "Payment successful",
+      data: invoiceRes.rows[0],
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("❌ payOrder error:", err);
+    res.status(500).json({
+      status: "error",
+      msg: "Error processing payment",
+      error: err.message,
+    });
+  } finally {
+    client.release();
+  }
 };

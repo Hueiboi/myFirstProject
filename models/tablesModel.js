@@ -8,6 +8,7 @@ const tablesModel = {
         [table_number, 'available']
     ),
     update: (id, table_number, status) => con.query('UPDATE tables SET table_number = $1, status = $2 WHERE id = $3', [table_number, status, id]),
+    updateStatus: (status, id) => con.query('UPDATE tables SET status = $1 WHERE id = $2', [status, id]),
     delete: (id) => con.query('DELETE FROM tables WHERE id = $1', [id])
 };
 

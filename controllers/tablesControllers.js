@@ -47,6 +47,18 @@ exports.updateTable = async (req, res) => {
     }
 };
 
+exports.updateTableStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    await tablesModel.updateStatus(status, id);
+    res.json({ status: "success", msg: "Table status updated" });
+  } catch (err) {
+    res.status(500).json({ status: "error", msg: "Failed to update table", error: err.message });
+  }
+};
+
 exports.deleteTable = async (req, res) => {
     try {
         const { id } = req.params;
